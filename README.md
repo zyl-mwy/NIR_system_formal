@@ -47,4 +47,11 @@ sudo apt install cursor
 5. clash-verge
 ```
 https://clash-verge.org/zh-CN/download
+怎么安装
+```
+6. Qt6
+```
+https://www.qt.io/zh-cn/
+怎么安装
+缺失包
 ```
