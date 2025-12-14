@@ -57,12 +57,15 @@ sudo chmod +x *.run
 sudo apt install libxcb-cursor0 libxcb-cursor-dev
 ```
 ### 电脑
-怎么安装百度或者上b站
 1. ubuntu 24.04 桌面版
 ```
 https://cn.ubuntu.com/download
+怎么安装百度或者上b站
 ```
 2. Raspberry Pi Imager
 ```
 https://www.raspberrypi.com/software/
+怎么安装百度或者上b站
 ```
+3. timeshift
+
