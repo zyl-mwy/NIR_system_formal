@@ -131,3 +131,6 @@ network:
 * ip addr
 3. 程序没写出来之前，不知道下位机有没有收到数据包
 * sudo tcpdump -vvv
+4. 网线口在闪烁，但是上一步还是看不到任何包
+* watch -n 1 'ethtool -S enp2s0'
+* watch -n 1 'ethtool -S eth0 | grep -E "(rx_mtu_err|rx_jabber|rx_good_pkts)"'
