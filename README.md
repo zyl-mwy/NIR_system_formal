@@ -57,7 +57,11 @@ sudo chmod +x *.run
 sudo apt install libxcb-cursor0 libxcb-cursor-dev
 ```
 ### 电脑
-1. Raspberry Pi Imager
+1. ubuntu 24.04 桌面版
+```
+https://cn.ubuntu.com/download
+```
+3. Raspberry Pi Imager
 ```
 https://www.raspberrypi.com/software/
 ```
