@@ -103,7 +103,7 @@ sudo apt install libxcb-cursor0 libxcb-cursor-dev
       rdp连接: 一定要用+号新建连接，基本设置里面色深选择增强色（16位），保存为默认值之后，在主界面选择rdp选项，输入ip地址进入，后面输入账号密码
    ```
 2. 树莓派如何固定ip并设置MTU
-* sudo nano /etc/netplan/50-cloud-init.yaml
+   * sudo nano /etc/netplan/50-cloud-init.yaml
    ```
    network:
      version: 2
