@@ -71,3 +71,8 @@ https://www.raspberrypi.com/software/
 ```
 sudo apt install timeshift
 ```
+4. clash-verge
+```
+下载 https://clash-verge.org/zh-CN/download 对应的linux-x86/arm64版本的
+sudo apt install *.deb
+```
