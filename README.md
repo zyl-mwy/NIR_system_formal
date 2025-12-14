@@ -44,3 +44,7 @@ echo "deb [arch=amd64,arm64 signed-by=/etc/apt/keyrings/cursor.gpg] https://down
 sudo apt update
 sudo apt install cursor
 ```
+5. clash-verge
+```
+https://clash-verge.org/zh-CN/download
+```
