@@ -95,3 +95,10 @@ sudo chmod +x *.run
 ./*.run
 sudo apt install libxcb-cursor0 libxcb-cursor-dev
 ```
+## 常见问题
+1. ubuntu用什么软件连接树莓派
+```
+remmina
+   ssh连接: 选择ssh选项先输入对应的ip地址后回车，后面输入账号密码
+   rdp连接：一定要用+号新建连接，基本设置里面色深选择增强色（16位），保存为默认值之后，在主界面选择rdp选项，输入ip地址进入，后面输入账号密码
+```
