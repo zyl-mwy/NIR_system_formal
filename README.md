@@ -145,3 +145,11 @@ sudo apt install libxcb-cursor0 libxcb-cursor-dev
    ```
    ssh-keygen -f "/home/linxi-ice/.ssh/known_hosts" -R "192.168.10.2"
    ```
+   * 从树莓派到电脑
+   ```
+   sudo apt install openssh-server # 如果未安装
+   sudo systemctl start ssh
+   sudo systemctl enable ssh
+   sudo systemctl status ssh
+   sudo netstat -tlnp | grep ssh
+   ```
