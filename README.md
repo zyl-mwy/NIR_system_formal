@@ -28,3 +28,7 @@ sudo apt install lubuntu-desktop
 ```
 sudo apt install xrdp
 ```
+3. gnome-disk-utility
+```
+sudo apt install gnome-disk-utility
+```
