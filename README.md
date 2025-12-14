@@ -46,8 +46,8 @@ sudo apt install cursor
 ```
 5. clash-verge
 ```
-https://clash-verge.org/zh-CN/download
-怎么安装
+下载 https://clash-verge.org/zh-CN/download 对应的linux-arm64版本的
+sudo apt install *.deb
 ```
 6. Qt6
 ```
