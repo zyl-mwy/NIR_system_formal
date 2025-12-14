@@ -73,6 +73,25 @@ sudo apt install timeshift
 ```
 4. clash-verge
 ```
-下载 https://clash-verge.org/zh-CN/download 对应的linux-x86/arm64版本的
+下载 https://clash-verge.org/zh-CN/download 对应的linux-x86/amd64版本的
 sudo apt install *.deb
+```
+5. cursor
+```
+# 添加 Cursor 的 GPG 密钥
+curl -fsSL https://downloads.cursor.com/keys/anysphere.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/cursor.gpg > /dev/null
+
+# 添加 Cursor 软件源
+echo "deb [arch=amd64,arm64 signed-by=/etc/apt/keyrings/cursor.gpg] https://downloads.cursor.com/aptrepo stable main" | sudo tee /etc/apt/sources.list.d/cursor.list > /dev/null
+
+# 更新并安装
+sudo apt update
+sudo apt install cursor
+```
+6. Qt6
+```
+下载 https://www.qt.io/zh-cn/ 对应的开源版本
+sudo chmod +x *.run
+./*.run
+sudo apt install libxcb-cursor0 libxcb-cursor-dev
 ```
