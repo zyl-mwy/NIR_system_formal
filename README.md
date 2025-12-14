@@ -102,3 +102,30 @@ remmina
    ssh连接: 选择ssh选项先输入对应的ip地址后回车，后面输入账号密码
    rdp连接: 一定要用+号新建连接，基本设置里面色深选择增强色（16位），保存为默认值之后，在主界面选择rdp选项，输入ip地址进入，后面输入账号密码
 ```
+2. 树莓派如何固定ip并设置MTU
+* sudo nano /etc/netplan/50-cloud-init.yaml
+```
+network:
+  version: 2
+  ethernets:
+    eth0:
+      addresses: [192.168.10.2/24]  # 同时设置静态IP
+      mtu: 2500
+      
+  wifis:
+    wlan0:
+      optional: true
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 200  # WiFi优先级较低
+      regulatory-domain: "CN"
+      access-points:
+        "linxi":
+          hidden: true
+          auth:
+            key-management: "psk"
+            password: "489da4c177223ab9c12b8141c739f3836e114525dd712b0ad0cae53224865e70"
+```
+* sudo netplan try/apply
+* sudo reboot 
+* ip addr
