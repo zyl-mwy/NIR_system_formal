@@ -15,4 +15,7 @@
 
 ## 软件准备
 ### 树莓派
-1. Ubuntu 24.04 + lubuntu-desktop
+1. Ubuntu 24.04 Sever + lubuntu-desktop
+```
+sudo apt install lubuntu-desktop
+```
