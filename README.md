@@ -129,3 +129,5 @@ network:
 * sudo netplan try/apply
 * sudo reboot 
 * ip addr
+3. 程序没写出来之前，不知道下位机有没有收到数据包
+* sudo tcpdump -vvv
