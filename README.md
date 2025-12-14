@@ -68,4 +68,6 @@ https://www.raspberrypi.com/software/
 怎么安装百度或者上b站
 ```
 3. timeshift
-
+```
+sudo apt install timeshift
+```
