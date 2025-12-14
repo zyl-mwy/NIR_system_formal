@@ -54,4 +54,5 @@ https://clash-verge.org/zh-CN/download
 https://www.qt.io/zh-cn/
 怎么安装
 缺失包
+sudo apt install libxcb-cursor0 libxcb-cursor-dev
 ```
