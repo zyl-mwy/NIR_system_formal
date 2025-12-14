@@ -19,3 +19,7 @@
 ```
 sudo apt install lubuntu-desktop
 ```
+2. xrdp
+```
+sudo apt install xrdp
+```
