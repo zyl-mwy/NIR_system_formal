@@ -153,3 +153,11 @@ sudo apt install libxcb-cursor0 libxcb-cursor-dev
    sudo systemctl status ssh
    sudo netstat -tlnp | grep ssh
    ```
+8. 想用qt5，对应的环境怎么装
+   * sudo apt install qtbase5-dev
+   * sudo apt install libqt5charts5-dev
+   * sudo apt install libopenblas0
+9. 如何编译c++程序
+   建议cmake 和 g++ 组合
+   * sudo apt install cmake
+   * sudo apt install g++
