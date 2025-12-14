@@ -138,3 +138,10 @@ sudo apt install libxcb-cursor0 libxcb-cursor-dev
    * ifconfig
    * ip link show
    * ip addr
+6. 笔记本和电脑之间传数据
+   * scp XXX.doc nvidia@172.23.100.201:~
+7. 上述传数据命令出现问题
+   * 从电脑到树莓派
+   ```
+   ssh-keygen -f "/home/linxi-ice/.ssh/known_hosts" -R "192.168.10.2"
+   ```
