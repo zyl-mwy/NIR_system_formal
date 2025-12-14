@@ -51,7 +51,7 @@ sudo apt install *.deb
 ```
 6. Qt6
 ```
-https://www.qt.io/zh-cn/
+下载 https://www.qt.io/zh-cn/ 对应的开源版本
 sudo chmod +x *.run
 ./*.run
 sudo apt install libxcb-cursor0 libxcb-cursor-dev
