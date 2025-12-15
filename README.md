@@ -95,6 +95,10 @@ sudo chmod +x *.run
 ./*.run
 sudo apt install libxcb-cursor0 libxcb-cursor-dev
 ```
+7. anaconda
+```
+下载 https://www.anaconda.com/download 对应arm linux版本
+```
 ## 常见问题
 1. ubuntu用什么软件连接树莓派
    ```
