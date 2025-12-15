@@ -100,6 +100,7 @@ sudo apt install libxcb-cursor0 libxcb-cursor-dev
 下载 https://www.anaconda.com/download 对应x86/amd65 linux版本
 chmod +x *.sh
 ./*.sh
+具体配置找百度
 ```
 ## 常见问题
 1. ubuntu用什么软件连接树莓派
