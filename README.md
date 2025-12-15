@@ -97,7 +97,7 @@ sudo apt install libxcb-cursor0 libxcb-cursor-dev
 ```
 7. anaconda
 ```
-下载 https://www.anaconda.com/download 对应x86/amd65 linux版本
+下载 https://www.anaconda.com/download 对应x86/amd64 linux版本
 chmod +x *.sh
 ./*.sh
 具体配置找百度
