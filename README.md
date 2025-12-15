@@ -104,7 +104,17 @@ chmod +x *.sh
 安装完成后
 vim ~/.bashrc
 结尾加上
-
+export  PATH=$PATH:/home/USERNAME/anaconda3/bin
+source ~/anaconda3/bin/activate
+之后
+source ~/.bashrc
+source activate
+pip config set global.index-url https://mirrors.aliyun.com/pypi/simple
+pip config set install.trusted-host mirrors.aliyun.com
+sudo apt-get install nvidia-driver-535
+sudo reboot
+sudo apt install nvidia-cuda-toolkit
+nvcc -V
 ```
 ## 常见问题
 1. ubuntu用什么软件连接树莓派
