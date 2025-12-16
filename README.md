@@ -183,4 +183,4 @@ nvcc -V
    * sudo apt install cmake
    * sudo apt install g++
 10. 如何查看自己新插入的串口设备的名字
-   * dmesg | grep tty
+    * dmesg | grep tty
