@@ -46,5 +46,11 @@ add_executable(calc_app
 
 target_link_libraries(calc_app PRIVATE Qt6::Quick Qt6::Qml Qt6::Network)
 target_include_directories(calc_app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-add_dependencies(calc_app add_plugin sub_plugin mul_plugin rf_predictor_plugin svm_predictor_plugin)
+
+# 添加插件依赖（PyTorch 插件可选，如果 libtorch 路径不存在则跳过）
+set(PLUGIN_DEPENDENCIES add_plugin sub_plugin mul_plugin rf_predictor_plugin svm_predictor_plugin)
+if(TARGET pytorch_predictor_plugin)
+    list(APPEND PLUGIN_DEPENDENCIES pytorch_predictor_plugin)
+endif()
+add_dependencies(calc_app ${PLUGIN_DEPENDENCIES})
 

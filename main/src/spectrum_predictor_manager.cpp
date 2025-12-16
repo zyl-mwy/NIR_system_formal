@@ -68,49 +68,14 @@ QString SpectrumPredictorManager::getDefaultModelPath(int index) const {
     return QString();
   }
   
-  QString algorithm = predictors_[static_cast<std::size_t>(index)].algorithm;
-  QString appDir = QCoreApplication::applicationDirPath();
-  
-  // 构建模型文件路径
-  // 算法名称映射到文件夹名称
-  QString folderName;
-  if (algorithm == "random_forest") {
-    folderName = "rf_predictor";
-  } else if (algorithm == "svm") {
-    folderName = "svm_predictor";
-  } else {
-    qWarning() << "未知的算法类型:" << algorithm;
+  auto *predictor = predictors_[static_cast<std::size_t>(index)].instance;
+  if (!predictor) {
+    qWarning() << "预测器实例无效";
     return QString();
   }
   
-  // 构建完整路径: 从应用程序目录向上查找 predictor_train 文件夹
-  // 应用程序可能在 build/ 目录中，需要向上查找项目根目录
-  QDir appDirObj(appDir);
-  
-  // 尝试向上查找 predictor_train 文件夹（最多向上3级）
-  for (int i = 0; i < 3; i++) {
-    QString testPath = appDirObj.absoluteFilePath(
-      QString("predictor_train/%1/spectrum_model.onnx").arg(folderName)
-    );
-    QFileInfo fileInfo(testPath);
-    if (fileInfo.exists() && fileInfo.isFile()) {
-      qDebug() << "找到模型文件:" << testPath;
-      return testPath;
-    }
-    
-    // 如果不在项目根目录，向上查找
-    if (!appDirObj.cdUp()) {
-      break;
-    }
-  }
-  
-  // 如果找不到，返回相对路径（假设在项目根目录）
-  QString modelPath = appDirObj.absoluteFilePath(
-    QString("predictor_train/%1/spectrum_model.onnx").arg(folderName)
-  );
-  
-  qWarning() << "模型文件可能不存在，返回路径:" << modelPath;
-  return modelPath;
+  // 直接从插件获取默认模型路径，路径构建逻辑在插件中实现
+  return predictor->getDefaultModelPath();
 }
 
 double SpectrumPredictorManager::predict(int index, const QVariantList &spectrumData) {

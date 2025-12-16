@@ -13,24 +13,32 @@ predictor_train/
 │   ├── README.md              # 使用说明
 │   └── spectrum_model.onnx    # 训练好的模型文件
 │
-└── svm_predictor/             # 支持向量机预测器（动态检测输入）
-    ├── spectrum_predictor.py  # 训练和导出 ONNX 模型（SVM 算法）
-    ├── onnx_predictor.py      # Python 预测程序
-    ├── onnx_example.cpp       # C++ 预测程序
-    ├── CMakeLists.txt         # C++ 编译配置
+├── svm_predictor/             # 支持向量机预测器（动态检测输入）
+│   ├── spectrum_predictor.py  # 训练和导出 ONNX 模型（SVM 算法）
+│   ├── onnx_predictor.py      # Python 预测程序
+│   ├── onnx_example.cpp       # C++ 预测程序
+│   ├── CMakeLists.txt         # C++ 编译配置
+│   ├── requirements.txt       # Python 依赖
+│   ├── README.md              # 使用说明
+│   └── spectrum_model.onnx    # 训练好的模型文件
+│
+└── pytorch_predictor/         # PyTorch 神经网络预测器（固定 1024 输入）
+    ├── spectrum_predictor.py  # 训练和导出 JIT 模型（PyTorch）
+    ├── jit_predictor.py       # Python 预测程序
     ├── requirements.txt       # Python 依赖
-    ├── README.md              # 使用说明
-    └── spectrum_model.onnx    # 训练好的模型文件
+    ├── README.md             # 使用说明
+    └── spectrum_model.jit    # 训练好的模型文件（JIT 格式）
 ```
 
 ## 对应关系
 
 ### 预测器插件 ↔ 训练文件夹
 
-| 预测器插件 | 训练文件夹 | 算法 | 输入维度 |
-|-----------|-----------|------|---------|
-| `plugins/predictor/rf_predictor_plugin.cpp` | `predictor_train/rf_predictor/` | 随机森林 (Random Forest) | 固定 1024 |
-| `plugins/predictor/svm_predictor_plugin.cpp` | `predictor_train/svm_predictor/` | 支持向量机 (SVM) | 动态检测 |
+| 预测器插件 | 训练文件夹 | 算法 | 输入维度 | 模型格式 |
+|-----------|-----------|------|---------|---------|
+| `plugins/predictor/rf_predictor_plugin.cpp` | `predictor_train/rf_predictor/` | 随机森林 (Random Forest) | 固定 1024 | ONNX |
+| `plugins/predictor/svm_predictor_plugin.cpp` | `predictor_train/svm_predictor/` | 支持向量机 (SVM) | 动态检测 | ONNX |
+| `plugins/predictor/pytorch_predictor_plugin.cpp` | `predictor_train/pytorch_predictor/` | PyTorch 神经网络 | 固定 1024 | JIT |
 
 ## 工作流程
 
@@ -50,6 +58,13 @@ python3 spectrum_predictor.py
 # 生成 spectrum_model.onnx
 ```
 
+**PyTorch 模型：**
+```bash
+cd predictor_train/pytorch_predictor
+python3 spectrum_predictor.py
+# 生成 spectrum_model.jit
+```
+
 ### 2. 使用模型进行预测
 
 **方式1：使用 Python 程序**
@@ -61,6 +76,10 @@ python3 onnx_predictor.py spectrum_model.onnx
 # 支持向量机预测器
 cd predictor_train/svm_predictor
 python3 onnx_predictor.py spectrum_model.onnx
+
+# PyTorch 预测器
+cd predictor_train/pytorch_predictor
+python3 jit_predictor.py spectrum_model.jit
 ```
 
 **方式2：使用 C++ 程序**
@@ -102,6 +121,12 @@ make -j4
 - **输入维度**: 动态检测
 - **特点**: 核函数方法，适合高维数据
 
+### `pytorch_predictor/`
+- **功能**: PyTorch 神经网络预测器的训练和预测程序
+- **算法**: 深度神经网络（多层全连接）
+- **输入维度**: 固定 1024
+- **特点**: 深度学习，使用 PyTorch JIT 格式模型
+
 ## 依赖安装
 
 ```bash
@@ -123,17 +148,27 @@ python3 spectrum_predictor.py
 cd predictor_train/svm_predictor
 python3 spectrum_predictor.py
 
-# 3. 在主程序中使用
+# 3. 训练 PyTorch 模型
+cd predictor_train/pytorch_predictor
+python3 spectrum_predictor.py
+
+# 4. 在主程序中使用
 # 启动主程序后，在界面中选择对应的预测算法并加载模型
 ```
 
 ## 注意事项
 
-1. **模型文件格式**: 必须使用 ONNX 格式
+1. **模型文件格式**: 
+   - RF 和 SVM 预测器使用 ONNX 格式（.onnx）
+   - PyTorch 预测器使用 JIT 格式（.jit）
 2. **输入维度匹配**: 
    - RF 预测器：必须使用 1024 输入的模型
    - SVM 预测器：可以适配不同输入维度的模型
+   - PyTorch 预测器：必须使用 1024 输入的模型
 3. **模型训练**: 每个文件夹中的 `spectrum_predictor.py` 使用不同的算法训练模型
 4. **插件对应**: 确保使用正确的模型文件对应正确的预测器插件
+5. **依赖库**: 
+   - RF/SVM 预测器需要 ONNX Runtime
+   - PyTorch 预测器需要 libtorch（需要在 CMakeLists.txt 中配置路径）
 
 

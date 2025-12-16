@@ -1,5 +1,8 @@
 #include <QObject>
 #include <QDebug>
+#include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
 #include <vector>
 #include <memory>
 
@@ -146,6 +149,41 @@ class SVMPredictorPlugin : public QObject, public SpectrumPredictorPlugin {
   
   QString algorithm() const override {
     return QStringLiteral("svm");
+  }
+  
+  QString getDefaultModelPath() const override {
+    // 权重文件路径构建逻辑在插件中实现
+    QString folderName = QStringLiteral("svm_predictor");
+    QString appDir = QCoreApplication::applicationDirPath();
+    
+    // 构建完整路径: 从应用程序目录向上查找 predictor_train 文件夹
+    // 应用程序可能在 build/ 目录中，需要向上查找项目根目录
+    QDir appDirObj(appDir);
+    
+    // 尝试向上查找 predictor_train 文件夹（最多向上3级）
+    for (int i = 0; i < 3; i++) {
+      QString testPath = appDirObj.absoluteFilePath(
+        QString("predictor_train/%1/spectrum_model.onnx").arg(folderName)
+      );
+      QFileInfo fileInfo(testPath);
+      if (fileInfo.exists() && fileInfo.isFile()) {
+        qDebug() << "找到模型文件:" << testPath;
+        return testPath;
+      }
+      
+      // 如果不在项目根目录，向上查找
+      if (!appDirObj.cdUp()) {
+        break;
+      }
+    }
+    
+    // 如果找不到，返回相对路径（假设在项目根目录）
+    QString modelPath = appDirObj.absoluteFilePath(
+      QString("predictor_train/%1/spectrum_model.onnx").arg(folderName)
+    );
+    
+    qWarning() << "模型文件可能不存在，返回路径:" << modelPath;
+    return modelPath;
   }
   
   bool loadModel(const QString &modelPath) override {

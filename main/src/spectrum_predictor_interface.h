@@ -10,6 +10,7 @@ class SpectrumPredictorPlugin {
   virtual ~SpectrumPredictorPlugin() = default;
   virtual QString name() const = 0;
   virtual QString algorithm() const = 0;  // 算法名称：random_forest 或 svm
+  virtual QString getDefaultModelPath() const = 0;  // 获取默认模型文件路径（由插件自己构建）
   virtual bool loadModel(const QString &modelPath) = 0;  // 加载模型
   virtual double predict(const QVariantList &spectrumData) = 0;  // 预测：输入1024个数据点，返回预测值
   virtual bool isModelLoaded() const = 0;  // 检查模型是否已加载
