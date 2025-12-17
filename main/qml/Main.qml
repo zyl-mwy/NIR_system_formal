@@ -10,6 +10,48 @@ Window {
     minimumHeight: 600
     visible: true
     title: "近红外水分检测系统"
+    color: "#f5f6fa"
+
+    // 根据内容自动调整窗口大小
+    function adjustWindowSize() {
+        // 如果窗口是最大化状态，不自动调整大小
+        if (root.visibility === Window.Maximized) {
+            return
+        }
+        if (contentColumn.implicitHeight > 0) {
+            var newHeight = contentColumn.implicitHeight + 32 + 40  // 内容高度 + 边距 + 标题栏
+            var targetHeight = Math.max(minimumHeight, Math.min(newHeight, screen.desktopAvailableHeight * 0.95))
+            if (Math.abs(root.height - targetHeight) > 10) {  // 增加阈值，避免频繁调整
+                root.height = targetHeight
+            }
+        }
+    }
+
+    Timer {
+        id: resizeTimer
+        interval: 500
+        running: root.visibility !== Window.Maximized
+        repeat: true
+        onTriggered: adjustWindowSize()
+    }
+
+    // 监听窗口状态变化
+    onVisibilityChanged: {
+        if (root.visibility === Window.Maximized) {
+            resizeTimer.running = false
+        } else {
+            resizeTimer.running = true
+        }
+    }
+
+    Component.onCompleted: {
+        // 初始化时延迟调整窗口大小
+        Qt.callLater(function() {
+            if (root.visibility !== Window.Maximized) {
+                adjustWindowSize()
+            }
+        })
+    }
 
     onClosing: function(close) {
         // 关闭界面时，如果串口还在运行状态，自动发送停止命令
@@ -49,327 +91,454 @@ Window {
                 Layout.fillWidth: true
 
             // 左侧：串口和UDP设置
-            ColumnLayout {
-                spacing: 12
-                Layout.preferredWidth: 350
-                Layout.minimumWidth: 300
-                Layout.maximumWidth: 400
-
-                Label {
-                    text: "通信设置"
-                    font.bold: true
-                    color: "#333333"
-                    font.pixelSize: 16
-                }
-
+            Rectangle {
+                Layout.preferredWidth: 260
+                Layout.minimumWidth: 240
+                Layout.maximumWidth: 300
+                Layout.fillHeight: true
+                color: "#ffffff"
+                radius: 10
+                border.color: "#e0e0e0"
+                border.width: 1
+                
+                // 阴影效果
                 Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: "#cccccc"
+                    anchors.fill: parent
+                    anchors.margins: -3
+                    color: "transparent"
+                    border.color: "#d0d0d0"
+                    border.width: 1
+                    radius: 13
+                    z: -1
+                    opacity: 0.2
                 }
-
-                // 串口设置
-                Label {
-                    text: "串口配置"
-                    font.bold: true
-                    color: "#333333"
-                    font.pixelSize: 14
-                }
-
-                RowLayout {
+                
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.topMargin: 8
+                    anchors.bottomMargin: 12
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
                     spacing: 8
-                    Label { 
-                        text: "串口:" 
-                        Layout.preferredWidth: 60
+
+                    // 串口设置
+                    Label {
+                        text: "串口配置"
+                        font.bold: true
+                        color: "#34495e"
+                        font.pixelSize: 12
+                        Layout.topMargin: 0
                     }
-                    TextField {
-                        id: serialPortInput
-                        text: "/dev/ttyUSB0"
+
+                    RowLayout {
+                        spacing: 6
+                        Label { 
+                            text: "串口:" 
+                            Layout.preferredWidth: 48
+                            color: "#555555"
+                            font.pixelSize: 12
+                        }
+                        TextField {
+                            id: serialPortInput
+                            text: "/dev/ttyUSB0"
+                            Layout.fillWidth: true
+                            placeholderText: "例如: /dev/ttyUSB0"
+                            background: Rectangle {
+                                color: "#f8f9fa"
+                                border.color: serialPortInput.focus ? "#3498db" : "#dee2e6"
+                                border.width: serialPortInput.focus ? 2 : 1
+                                radius: 4
+                            }
+                            padding: 6
+                            font.pixelSize: 12
+                        }
+                    }
+
+                    // UDP设置
+                    Label {
+                        text: "UDP配置"
+                        font.bold: true
+                        color: "#34495e"
+                        font.pixelSize: 12
+                        Layout.topMargin: 0
+                    }
+
+                    RowLayout {
+                        spacing: 6
+                        Label { 
+                            text: "地址:" 
+                            Layout.preferredWidth: 48
+                            color: "#555555"
+                            font.pixelSize: 12
+                        }
+                        TextField {
+                            id: udpBindAddressInput
+                            text: "192.168.1.102"
+                            Layout.fillWidth: true
+                            placeholderText: "留空为任意地址"
+                            background: Rectangle {
+                                color: "#f8f9fa"
+                                border.color: udpBindAddressInput.focus ? "#3498db" : "#dee2e6"
+                                border.width: udpBindAddressInput.focus ? 2 : 1
+                                radius: 4
+                            }
+                            padding: 6
+                            font.pixelSize: 12
+                        }
+                        Label { 
+                            text: "端口:" 
+                            Layout.preferredWidth: 40
+                            color: "#555555"
+                            font.pixelSize: 12
+                        }
+                        TextField {
+                            id: udpPortInput
+                            text: "1234"
+                            Layout.preferredWidth: 65
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            placeholderText: "端口号"
+                            background: Rectangle {
+                                color: "#f8f9fa"
+                                border.color: udpPortInput.focus ? "#3498db" : "#dee2e6"
+                                border.width: udpPortInput.focus ? 2 : 1
+                                radius: 4
+                            }
+                            padding: 6
+                            font.pixelSize: 12
+                        }
+                    }
+
+                    // 共用启动按钮和通信修正按钮
+                    RowLayout {
+                        spacing: 6
                         Layout.fillWidth: true
-                        placeholderText: "例如: /dev/ttyUSB0"
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: "#cccccc"
-                }
-
-                // UDP设置
-                Label {
-                    text: "UDP配置"
-                    font.bold: true
-                    color: "#333333"
-                    font.pixelSize: 14
-                }
-
-                RowLayout {
-                    spacing: 8
-                    Label { 
-                        text: "地址:" 
-                        Layout.preferredWidth: 50
-                    }
-                    TextField {
-                        id: udpBindAddressInput
-                        text: "192.168.1.102"
-                        Layout.fillWidth: true
-                        placeholderText: "留空为任意地址"
-                    }
-                    Label { 
-                        text: "端口:" 
-                        Layout.preferredWidth: 50
-                    }
-                    TextField {
-                        id: udpPortInput
-                        text: "1234"
-                        Layout.preferredWidth: 80
-                        inputMethodHints: Qt.ImhDigitsOnly
-                        placeholderText: "端口号"
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: "#cccccc"
-                }
-
-                // 共用启动按钮和通信修正按钮
-                RowLayout {
-                    spacing: 8
-                    Layout.fillWidth: true
-                    
-                    Button {
-                        Layout.fillWidth: true
-                        text: (serialComm.isStarted || udpComm.receiving) ? "停止获取光谱" : "开始获取光谱"
-                        onClicked: {
-                            if (serialComm.isStarted || udpComm.receiving) {
-                                // 停止所有通信
-                                if (serialComm.isStarted) {
+                        Layout.topMargin: 0
+                        
+                        Button {
+                            Layout.fillWidth: true
+                            text: (serialComm.isStarted || udpComm.receiving) ? "停止获取光谱" : "开始获取光谱"
+                            background: Rectangle {
+                                color: parent.pressed ? "#2980b9" : (parent.hovered ? "#3498db" : "#3498db")
+                                radius: 6
+                                border.color: "#2980b9"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: "#ffffff"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 13
+                                font.bold: true
+                            }
+                            onClicked: {
+                                if (serialComm.isStarted || udpComm.receiving) {
+                                    // 停止所有通信
+                                    if (serialComm.isStarted) {
+                                        const port = serialPortInput.text.trim()
+                                        if (port.length > 0) {
+                                            serialComm.toggleCommand(port)
+                                        }
+                                    }
+                                    if (udpComm.receiving) {
+                                        udpComm.stopReceiving()
+                                    }
+                                } else {
+                                    // 启动所有通信
+                                    // 启动串口
                                     const port = serialPortInput.text.trim()
                                     if (port.length > 0) {
                                         serialComm.toggleCommand(port)
+                                    } else {
+                                        serialStatusLabel.text = "✗ 请输入串口名称"
+                                    }
+                                    
+                                    // 启动UDP
+                                    const udpPort = parseInt(udpPortInput.text)
+                                    if (isNaN(udpPort) || udpPort < 1 || udpPort > 65535) {
+                                        udpStatusLabel.text = "✗ 请输入有效的端口号(1-65535)"
+                                    } else {
+                                        const bindAddr = udpBindAddressInput.text.trim()
+                                        udpComm.startReceiving(udpPort, bindAddr)
                                     }
                                 }
-                                if (udpComm.receiving) {
-                                    udpComm.stopReceiving()
-                                }
-                            } else {
-                                // 启动所有通信
-                                // 启动串口
+                            }
+                        }
+                        
+                        Button {
+                            Layout.preferredWidth: 85
+                            text: "通信修正"
+                            enabled: serialComm.isStarted || udpComm.receiving
+                            background: Rectangle {
+                                color: parent.pressed ? "#95a5a6" : (parent.hovered ? "#bdc3c7" : (parent.enabled ? "#ecf0f1" : "#e9ecef"))
+                                radius: 6
+                                border.color: parent.enabled ? "#bdc3c7" : "#d5d8dc"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: parent.enabled ? "#2c3e50" : "#95a5a6"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            onClicked: {
+                                // 只发送开始检测的命令，不做其他操作
                                 const port = serialPortInput.text.trim()
                                 if (port.length > 0) {
-                                    serialComm.toggleCommand(port)
+                                    serialComm.sendStartCommand(port)
                                 } else {
                                     serialStatusLabel.text = "✗ 请输入串口名称"
                                 }
-                                
-                                // 启动UDP
-                                const udpPort = parseInt(udpPortInput.text)
-                                if (isNaN(udpPort) || udpPort < 1 || udpPort > 65535) {
-                                    udpStatusLabel.text = "✗ 请输入有效的端口号(1-65535)"
+                            }
+                        }
+                    }
+
+                    // 参考数据处理
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 4
+                        height: 1
+                        color: "#e8e8e8"
+                    }
+                    
+                    Label {
+                        text: "参考数据处理"
+                        font.bold: true
+                        color: "#34495e"
+                        font.pixelSize: 12
+                        Layout.topMargin: 0
+                    }
+
+                    RowLayout {
+                        spacing: 6
+                        Label {
+                            text: "黑参考:"
+                            color: "#555555"
+                            font.bold: true
+                            Layout.preferredWidth: 52
+                            font.pixelSize: 12
+                        }
+                        Button {
+                            text: udpComm.blackReferenceAccumulating ? "停止黑参考" : "开始黑参考"
+                            enabled: (udpComm.receiving && !udpComm.blackReferenceAccumulating && !udpComm.whiteReferenceAccumulating) || udpComm.blackReferenceAccumulating
+                            Layout.fillWidth: true
+                            background: Rectangle {
+                                color: parent.pressed ? "#27ae60" : (parent.hovered ? "#2ecc71" : (parent.enabled ? "#27ae60" : "#bdc3c7"))
+                                radius: 6
+                                border.color: parent.enabled ? "#229954" : "#95a5a6"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: parent.enabled ? "#ffffff" : "#7f8c8d"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            onClicked: {
+                                if (udpComm.blackReferenceAccumulating) {
+                                    udpComm.stopBlackReference()
                                 } else {
-                                    const bindAddr = udpBindAddressInput.text.trim()
-                                    udpComm.startReceiving(udpPort, bindAddr)
+                                    // 清除之前的成功标记，以便重新显示进度
+                                    blackReferenceData = null
+                                    udpComm.startBlackReference()
                                 }
                             }
                         }
                     }
-                    
-                    Button {
-                        Layout.preferredWidth: 100
-                        text: "通信修正"
-                        onClicked: {
-                            // 只发送开始检测的命令，不做其他操作
-                            const port = serialPortInput.text.trim()
-                            if (port.length > 0) {
-                                serialComm.sendStartCommand(port)
-                            } else {
-                                serialStatusLabel.text = "✗ 请输入串口名称"
+
+                    RowLayout {
+                        spacing: 8
+                        Label {
+                            text: "进度:"
+                            color: "#555555"
+                            Layout.preferredWidth: 52
+                            font.pixelSize: 12
+                        }
+                        Label {
+                            id: blackReferenceProgressLabel
+                            text: blackReferenceData !== null ? "已经成功获取" : (udpComm.blackReferenceProgress.toString() + " / 39500")
+                            color: blackReferenceData !== null ? "#27ae60" : (udpComm.blackReferenceAccumulating ? "#3498db" : "#7f8c8d")
+                            font.bold: blackReferenceData !== null || udpComm.blackReferenceAccumulating
+                            font.pixelSize: 12
+                            Layout.fillWidth: true
+                        }
+                    }
+
+                    RowLayout {
+                        spacing: 8
+                        Layout.topMargin: 4
+                        Label {
+                            text: "白参考:"
+                            color: "#555555"
+                            font.bold: true
+                            Layout.preferredWidth: 52
+                            font.pixelSize: 12
+                        }
+                        Button {
+                            text: udpComm.whiteReferenceAccumulating ? "停止白参考" : "开始白参考"
+                            enabled: (udpComm.receiving && !udpComm.whiteReferenceAccumulating && !udpComm.blackReferenceAccumulating) || udpComm.whiteReferenceAccumulating
+                            Layout.fillWidth: true
+                            background: Rectangle {
+                                color: parent.pressed ? "#e67e22" : (parent.hovered ? "#f39c12" : (parent.enabled ? "#e67e22" : "#bdc3c7"))
+                                radius: 6
+                                border.color: parent.enabled ? "#d35400" : "#95a5a6"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: parent.enabled ? "#ffffff" : "#7f8c8d"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            onClicked: {
+                                if (udpComm.whiteReferenceAccumulating) {
+                                    udpComm.stopWhiteReference()
+                                } else {
+                                    // 清除之前的成功标记，以便重新显示进度
+                                    whiteReferenceData = null
+                                    udpComm.startWhiteReference()
+                                }
                             }
                         }
                     }
-                }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: "#cccccc"
-                }
-
-                // 参考数据处理
-                Label {
-                    text: "参考数据处理"
-                    font.bold: true
-                    color: "#333333"
-                    font.pixelSize: 14
-                }
-
-                RowLayout {
-                    spacing: 8
-                    Label {
-                        text: "黑参考:"
-                        color: "#333333"
-                        font.bold: true
-                        Layout.preferredWidth: 60
-                    }
-                    Button {
-                        text: udpComm.blackReferenceAccumulating ? "停止黑参考" : "开始黑参考"
-                        enabled: udpComm.receiving && !udpComm.blackReferenceAccumulating || udpComm.blackReferenceAccumulating
-                        Layout.fillWidth: true
-                        onClicked: {
-                            if (udpComm.blackReferenceAccumulating) {
-                                udpComm.stopBlackReference()
-                            } else {
-                                // 清除之前的成功标记，以便重新显示进度
-                                blackReferenceData = null
-                                udpComm.startBlackReference()
-                            }
+                    RowLayout {
+                        spacing: 8
+                        Label {
+                            text: "进度:"
+                            color: "#555555"
+                            Layout.preferredWidth: 52
+                            font.pixelSize: 12
                         }
-                    }
-                }
-
-                RowLayout {
-                    spacing: 8
-                    Label {
-                        text: "进度:"
-                        color: "#333333"
-                        Layout.preferredWidth: 60
-                    }
-                    Label {
-                        id: blackReferenceProgressLabel
-                        text: blackReferenceData !== null ? "已经成功获取" : (udpComm.blackReferenceProgress.toString() + " / 39500")
-                        color: blackReferenceData !== null ? "#006600" : (udpComm.blackReferenceAccumulating ? "#0066cc" : "#666666")
-                        font.bold: blackReferenceData !== null || udpComm.blackReferenceAccumulating
-                        font.pixelSize: 14
-                        Layout.fillWidth: true
-                    }
-                }
-
-                RowLayout {
-                    spacing: 8
-                    Label {
-                        text: "白参考:"
-                        color: "#333333"
-                        font.bold: true
-                        Layout.preferredWidth: 60
-                    }
-                    Button {
-                        text: udpComm.whiteReferenceAccumulating ? "停止白参考" : "开始白参考"
-                        enabled: udpComm.receiving && !udpComm.whiteReferenceAccumulating || udpComm.whiteReferenceAccumulating
-                        Layout.fillWidth: true
-                        onClicked: {
-                            if (udpComm.whiteReferenceAccumulating) {
-                                udpComm.stopWhiteReference()
-                            } else {
-                                // 清除之前的成功标记，以便重新显示进度
-                                whiteReferenceData = null
-                                udpComm.startWhiteReference()
-                            }
+                        Label {
+                            id: whiteReferenceProgressLabel
+                            text: whiteReferenceData !== null ? "已经成功获取" : (udpComm.whiteReferenceProgress.toString() + " / 39500")
+                            color: whiteReferenceData !== null ? "#27ae60" : (udpComm.whiteReferenceAccumulating ? "#3498db" : "#7f8c8d")
+                            font.bold: whiteReferenceData !== null || udpComm.whiteReferenceAccumulating
+                            font.pixelSize: 12
+                            Layout.fillWidth: true
                         }
-                    }
-                }
-
-                RowLayout {
-                    spacing: 8
-                    Label {
-                        text: "进度:"
-                        color: "#333333"
-                        Layout.preferredWidth: 60
-                    }
-                    Label {
-                        id: whiteReferenceProgressLabel
-                        text: whiteReferenceData !== null ? "已经成功获取" : (udpComm.whiteReferenceProgress.toString() + " / 39500")
-                        color: whiteReferenceData !== null ? "#006600" : (udpComm.whiteReferenceAccumulating ? "#0066cc" : "#666666")
-                        font.bold: whiteReferenceData !== null || udpComm.whiteReferenceAccumulating
-                        font.pixelSize: 14
-                        Layout.fillWidth: true
                     }
                 }
             }
 
             // 右侧：其他内容
             ColumnLayout {
-                spacing: 12
+                spacing: 16
                 Layout.fillWidth: true
 
-                // 数字计算器功能已暂时屏蔽
-                /*
-                Row {
-                    spacing: 8
-                    Label { text: "数字 A:" }
-                    TextField {
-                        id: inputA
-                        text: "1"
-                        width: 140
-                        inputMethodHints: Qt.ImhFormattedNumbersOnly
-                    }
-
-                    Label { text: "数字 B:" }
-                    TextField {
-                        id: inputB
-                        text: "2"
-                        width: 140
-                        inputMethodHints: Qt.ImhFormattedNumbersOnly
-                    }
-                }
-
-                Row {
-                    spacing: 8
-                    Label { text: "选择算法插件:" }
-                    ComboBox {
-                        id: pluginBox
-                        model: pluginManager.pluginNames
-                        enabled: pluginManager.hasPlugins()
-                        width: 240
-                    }
-                }
-
-                Row {
-                    spacing: 12
-                    Button {
-                        text: "计算"
-                        enabled: pluginManager.hasPlugins()
-                        onClicked: {
-                            const a = Number(inputA.text)
-                            const b = Number(inputB.text)
-
-                            if (Number.isNaN(a) || Number.isNaN(b)) {
-                                resultLabel.text = "请输入有效数字"
-                                return
-                            }
-
-                            const res = pluginManager.compute(pluginBox.currentIndex, a, b)
-                            if (res === undefined || res === null) {
-                                resultLabel.text = "计算失败，可能未找到插件"
-                                return
-                            }
-
-                            resultLabel.text = "结果: " + res
-                        }
-                    }
-
-                    Label {
-                        id: resultLabel
-                        text: pluginManager.hasPlugins() ? "结果将在这里显示" : "未找到可用插件"
-                        wrapMode: Label.Wrap
-                    }
-                }
-
+                // 第一部分：预测算法配置
                 Rectangle {
                     Layout.fillWidth: true
-                    height: 1
-                    color: "#cccccc"
-                }
-                */
+                    color: "#ffffff"
+                    radius: 10
+                    border.color: "#e0e0e0"
+                    border.width: 1
+                    implicitHeight: predictorConfigColumn.implicitHeight + 20
+                    
+                    // 阴影效果
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -3
+                        color: "transparent"
+                        border.color: "#d0d0d0"
+                        border.width: 1
+                        radius: 13
+                        z: -1
+                        opacity: 0.2
+                    }
+                    
+                    ColumnLayout {
+                        id: predictorConfigColumn
+                        anchors.fill: parent
+                        anchors.topMargin: 8
+                        anchors.bottomMargin: 12
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+                        spacing: 8
 
-                // 预测器配置区域
+                        // 数字计算器功能已暂时屏蔽
+                        /*
+                        Row {
+                            spacing: 8
+                            Label { text: "数字 A:" }
+                            TextField {
+                                id: inputA
+                                text: "1"
+                                width: 140
+                                inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            }
+
+                            Label { text: "数字 B:" }
+                            TextField {
+                                id: inputB
+                                text: "2"
+                                width: 140
+                                inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            }
+                        }
+
+                        Row {
+                            spacing: 8
+                            Label { text: "选择算法插件:" }
+                            ComboBox {
+                                id: pluginBox
+                                model: pluginManager.pluginNames
+                                enabled: pluginManager.hasPlugins()
+                                width: 240
+                            }
+                        }
+
+                        Row {
+                            spacing: 12
+                            Button {
+                                text: "计算"
+                                enabled: pluginManager.hasPlugins()
+                                onClicked: {
+                                    const a = Number(inputA.text)
+                                    const b = Number(inputB.text)
+
+                                    if (Number.isNaN(a) || Number.isNaN(b)) {
+                                        resultLabel.text = "请输入有效数字"
+                                        return
+                                    }
+
+                                    const res = pluginManager.compute(pluginBox.currentIndex, a, b)
+                                    if (res === undefined || res === null) {
+                                        resultLabel.text = "计算失败，可能未找到插件"
+                                        return
+                                    }
+
+                                    resultLabel.text = "结果: " + res
+                                }
+                            }
+
+                            Label {
+                                id: resultLabel
+                                text: pluginManager.hasPlugins() ? "结果将在这里显示" : "未找到可用插件"
+                                wrapMode: Label.Wrap
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 1
+                            color: "#cccccc"
+                        }
+                        */
+
+                        // 预测器配置区域
                 Label {
                     text: "预测算法配置"
                     font.bold: true
-                    color: "#333333"
-                    font.pixelSize: 14
+                    color: "#34495e"
+                    font.pixelSize: 12
                     Layout.fillWidth: true
                 }
 
@@ -389,7 +558,30 @@ Window {
                             model: predictorManager.predictorNames
                             enabled: predictorManager.hasPredictors
                             Layout.preferredWidth: 280
+                            Layout.preferredHeight: 32
                             Layout.fillWidth: true
+                            
+                            background: Rectangle {
+                                color: "#f8f9fa"
+                                border.color: parent.focus ? "#3498db" : "#dee2e6"
+                                border.width: parent.focus ? 2 : 1
+                                radius: 4
+                            }
+                            contentItem: Text {
+                                text: parent.displayText
+                                color: parent.enabled ? "#2c3e50" : "#95a5a6"
+                                font.pixelSize: 12
+                                verticalAlignment: Text.AlignVCenter
+                                leftPadding: 8
+                                rightPadding: 8
+                            }
+                            popup.background: Rectangle {
+                                color: "#ffffff"
+                                border.color: "#dee2e6"
+                                border.width: 1
+                                radius: 4
+                            }
+                            
                     onCurrentIndexChanged: {
                         if (currentIndex >= 0) {
                             const algorithm = predictorManager.getAlgorithm(currentIndex)
@@ -481,6 +673,22 @@ Window {
                             enabled: predictorComboBox.currentIndex >= 0 && currentModelLoaded && (udpComm.receiving || serialComm.isStarted)
                             Layout.preferredWidth: 150
                             Layout.fillWidth: true
+                            
+                            background: Rectangle {
+                                color: parent.pressed ? "#7d3c98" : (parent.hovered ? "#9b59b6" : (parent.enabled ? "#9b59b6" : "#bdc3c7"))
+                                radius: 6
+                                border.color: parent.enabled ? "#7d3c98" : "#95a5a6"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: parent.enabled ? "#ffffff" : "#7f8c8d"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 13
+                                font.bold: true
+                            }
+                            
                             onClicked: {
                                 if (currentPredictorIndex >= 0) {
                                     udpComm.setPredictorIndex(-1)
@@ -509,7 +717,7 @@ Window {
                         text: "请选择预测算法并加载模型"
                         wrapMode: Label.Wrap
                         color: "#666666"
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         Layout.fillWidth: true
                     }
 
@@ -517,34 +725,62 @@ Window {
                         spacing: 8
                         Label {
                             text: "预测结果:"
-                            color: "#333333"
+                            color: "#555555"
                             font.bold: true
+                            font.pixelSize: 12
                         }
                         Label {
                             id: predictionResultLabel
                             text: "未启用预测"
                             color: "#666666"
                             font.bold: true
-                            font.pixelSize: 14
+                            font.pixelSize: 13
                             Layout.fillWidth: true
+                        }
+                    }
                         }
                     }
                 }
 
+                // 第二部分：图表区域
                 Rectangle {
                     Layout.fillWidth: true
-                    height: 1
-                    color: "#cccccc"
-                }
+                    Layout.preferredHeight: 300
+                    Layout.minimumHeight: 250
+                    color: "#ffffff"
+                    radius: 10
+                    border.color: "#e0e0e0"
+                    border.width: 1
+                    
+                    // 阴影效果
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -3
+                        color: "transparent"
+                        border.color: "#d0d0d0"
+                        border.width: 1
+                        radius: 13
+                        z: -1
+                        opacity: 0.2
+                    }
+                    
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.topMargin: 8
+                        anchors.bottomMargin: 12
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+                        spacing: 12
 
-                Label {
-                    text: "光谱曲线与预测结果曲线"
-                    font.bold: true
-                    color: "#333333"
-                    Layout.fillWidth: true
-                }
+                        Label {
+                            text: "光谱曲线与预测结果曲线"
+                            font.bold: true
+                            color: "#34495e"
+                            font.pixelSize: 12
+                            Layout.fillWidth: true
+                        }
 
-                RowLayout {
+                    RowLayout {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 200
                     spacing: 12
@@ -557,7 +793,7 @@ Window {
                         Label {
                             text: "光谱曲线 (每3950条数据更新一次)"
                             font.bold: true
-                            color: "#333333"
+                            color: "#34495e"
                             font.pixelSize: 12
                             Layout.fillWidth: true
                         }
@@ -566,9 +802,10 @@ Window {
                             id: spectrumChartContainer
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            color: "#f5f5f5"
-                            border.color: "#cccccc"
+                            color: "#ffffff"
+                            border.color: "#e0e0e0"
                             border.width: 1
+                            radius: 6
 
                             Canvas {
                                 id: spectrumCanvas
@@ -579,9 +816,10 @@ Window {
                                     ctx.clearRect(0, 0, width, height)
                                     
                                     if (!spectrumData || spectrumData.length === 0) {
-                                        ctx.fillStyle = "#999999"
-                                        ctx.font = "14px sans-serif"
-                                        ctx.fillText("等待数据...", width / 2 - 50, height / 2)
+                                        ctx.fillStyle = "#95a5a6"
+                                        ctx.font = "13px sans-serif"
+                                        ctx.textAlign = "center"
+                                        ctx.fillText("等待数据...", width / 2, height / 2)
                                         return
                                     }
 
@@ -608,9 +846,9 @@ Window {
                                     var plotHeight = plotBottom - plotTop
 
                                     // 绘制网格线
-                                    ctx.strokeStyle = "#e0e0e0"
+                                    ctx.strokeStyle = "#f0f0f0"
                                     ctx.lineWidth = 1
-                                    ctx.setLineDash([5, 5])
+                                    ctx.setLineDash([3, 3])
                                     
                                     // 垂直网格线（X 方向）
                                     var gridCountX = 5
@@ -635,8 +873,8 @@ Window {
                                     ctx.setLineDash([])  // 重置虚线
 
                                     // 绘制坐标轴
-                                    ctx.strokeStyle = "#333333"
-                                    ctx.lineWidth = 2
+                                    ctx.strokeStyle = "#bdc3c7"
+                                    ctx.lineWidth = 1.5
                                     ctx.beginPath()
                                     ctx.moveTo(plotLeft, plotBottom)
                                     ctx.lineTo(plotRight, plotBottom)  // X 轴
@@ -645,9 +883,9 @@ Window {
                                     ctx.stroke()
 
                                     // 绘制 X 轴刻度
-                                    ctx.strokeStyle = "#333333"
+                                    ctx.strokeStyle = "#95a5a6"
                                     ctx.lineWidth = 1
-                                    ctx.fillStyle = "#333333"
+                                    ctx.fillStyle = "#7f8c8d"
                                     ctx.font = "10px sans-serif"
                                     ctx.textAlign = "center"
                                     ctx.textBaseline = "top"
@@ -690,7 +928,7 @@ Window {
                                     }
 
                                     // 绘制坐标轴标签
-                                    ctx.fillStyle = "#333333"
+                                    ctx.fillStyle = "#34495e"
                                     ctx.font = "bold 12px sans-serif"
                                     ctx.textAlign = "center"
                                     ctx.textBaseline = "top"
@@ -726,7 +964,7 @@ Window {
                                     ctx.stroke()
 
                                     // 绘制信息文本
-                                    ctx.fillStyle = "#333333"
+                                    ctx.fillStyle = "#555555"
                                     ctx.font = "11px sans-serif"
                                     ctx.textAlign = "left"
                                     ctx.fillText("最小值: " + minVal.toFixed(0), plotLeft + 5, plotTop + 15)
@@ -745,7 +983,7 @@ Window {
                         Label {
                             text: "预测结果曲线 (最多10个数值)"
                             font.bold: true
-                            color: "#333333"
+                            color: "#34495e"
                             font.pixelSize: 12
                             Layout.fillWidth: true
                         }
@@ -754,9 +992,10 @@ Window {
                             id: predictionChartContainer
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            color: "#f5f5f5"
-                            border.color: "#cccccc"
+                            color: "#ffffff"
+                            border.color: "#e0e0e0"
                             border.width: 1
+                            radius: 6
 
                             Canvas {
                                 id: predictionCanvas
@@ -767,9 +1006,10 @@ Window {
                                     ctx.clearRect(0, 0, width, height)
                                     
                                     if (!predictionHistory || predictionHistory.length === 0) {
-                                        ctx.fillStyle = "#999999"
-                                        ctx.font = "14px sans-serif"
-                                        ctx.fillText("等待预测结果...", width / 2 - 70, height / 2)
+                                        ctx.fillStyle = "#95a5a6"
+                                        ctx.font = "13px sans-serif"
+                                        ctx.textAlign = "center"
+                                        ctx.fillText("等待预测结果...", width / 2, height / 2)
                                         return
                                     }
 
@@ -810,9 +1050,9 @@ Window {
                                     var plotHeight = plotBottom - plotTop
 
                                     // 绘制网格线
-                                    ctx.strokeStyle = "#e0e0e0"
+                                    ctx.strokeStyle = "#f0f0f0"
                                     ctx.lineWidth = 1
-                                    ctx.setLineDash([5, 5])
+                                    ctx.setLineDash([3, 3])
                                     
                                     // 垂直网格线（X 方向）
                                     var gridCountX = 5
@@ -837,8 +1077,8 @@ Window {
                                     ctx.setLineDash([])  // 重置虚线
 
                                     // 绘制坐标轴
-                                    ctx.strokeStyle = "#333333"
-                                    ctx.lineWidth = 2
+                                    ctx.strokeStyle = "#bdc3c7"
+                                    ctx.lineWidth = 1.5
                                     ctx.beginPath()
                                     ctx.moveTo(plotLeft, plotBottom)
                                     ctx.lineTo(plotRight, plotBottom)  // X 轴
@@ -847,9 +1087,9 @@ Window {
                                     ctx.stroke()
 
                                     // 绘制 X 轴刻度
-                                    ctx.strokeStyle = "#333333"
+                                    ctx.strokeStyle = "#95a5a6"
                                     ctx.lineWidth = 1
-                                    ctx.fillStyle = "#333333"
+                                    ctx.fillStyle = "#7f8c8d"
                                     ctx.font = "10px sans-serif"
                                     ctx.textAlign = "center"
                                     ctx.textBaseline = "top"
@@ -890,7 +1130,7 @@ Window {
                                     }
 
                                     // 绘制坐标轴标签
-                                    ctx.fillStyle = "#333333"
+                                    ctx.fillStyle = "#34495e"
                                     ctx.font = "bold 12px sans-serif"
                                     ctx.textAlign = "center"
                                     ctx.textBaseline = "top"
@@ -938,7 +1178,7 @@ Window {
                                     }
 
                                     // 绘制信息文本
-                                    ctx.fillStyle = "#333333"
+                                    ctx.fillStyle = "#555555"
                                     ctx.font = "11px sans-serif"
                                     ctx.textAlign = "left"
                                     var actualMin = Math.min.apply(null, predictionHistory)
@@ -953,7 +1193,9 @@ Window {
                         }
                     }
                 }
-            }
+                        }
+                    }
+                }
             }
             
             // 状态信息区域（界面下方，左右分栏）
@@ -966,27 +1208,47 @@ Window {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    color: "#f5f5f5"
-                    border.color: "#cccccc"
+                    color: "#ffffff"
+                    radius: 10
+                    border.color: "#e0e0e0"
                     border.width: 1
+                    
+                    // 阴影效果
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -3
+                        color: "transparent"
+                        border.color: "#d0d0d0"
+                        border.width: 1
+                        radius: 13
+                        z: -1
+                        opacity: 0.2
+                    }
                     
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 12
+                        anchors.topMargin: 8
+                        anchors.bottomMargin: 12
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
                         spacing: 8
                         
-                        Label {
-                            text: "通信状态信息"
-                            font.bold: true
-                            color: "#333333"
-                            font.pixelSize: 14
-                            Layout.fillWidth: true
-                        }
-                        
+                        // 标题区域
                         Rectangle {
                             Layout.fillWidth: true
-                            height: 1
-                            color: "#cccccc"
+                            height: 30
+                            color: "#f8f9fa"
+                            radius: 6
+                            
+                            Label {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 10
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "通信状态信息"
+                                font.bold: true
+                                color: "#2c3e50"
+                                font.pixelSize: 13
+                            }
                         }
                         
                         // 串口通信状态
@@ -994,7 +1256,8 @@ Window {
                             spacing: 8
                             Label {
                                 text: "串口状态:"
-                                color: "#333333"
+                                color: "#555555"
+                                font.pixelSize: 12
                                 Layout.preferredWidth: 80
                             }
                             Label {
@@ -1002,6 +1265,7 @@ Window {
                                 text: "串口状态将在这里显示"
                                 wrapMode: Label.Wrap
                                 color: "#666666"
+                                font.pixelSize: 12
                                 Layout.fillWidth: true
                             }
                         }
@@ -1011,7 +1275,8 @@ Window {
                             spacing: 8
                             Label {
                                 text: "UDP状态:"
-                                color: "#333333"
+                                color: "#555555"
+                                font.pixelSize: 12
                                 Layout.preferredWidth: 80
                             }
                             Label {
@@ -1019,6 +1284,7 @@ Window {
                                 text: "UDP状态将在这里显示"
                                 wrapMode: Label.Wrap
                                 color: "#666666"
+                                font.pixelSize: 12
                                 Layout.fillWidth: true
                             }
                         }
@@ -1029,27 +1295,47 @@ Window {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    color: "#f5f5f5"
-                    border.color: "#cccccc"
+                    color: "#ffffff"
+                    radius: 10
+                    border.color: "#e0e0e0"
                     border.width: 1
+                    
+                    // 阴影效果
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -3
+                        color: "transparent"
+                        border.color: "#d0d0d0"
+                        border.width: 1
+                        radius: 13
+                        z: -1
+                        opacity: 0.2
+                    }
                     
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 12
+                        anchors.topMargin: 8
+                        anchors.bottomMargin: 12
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
                         spacing: 8
                         
-                        Label {
-                            text: "UDP信息统计"
-                            font.bold: true
-                            color: "#333333"
-                            font.pixelSize: 14
-                            Layout.fillWidth: true
-                        }
-                        
+                        // 标题区域
                         Rectangle {
                             Layout.fillWidth: true
-                            height: 1
-                            color: "#cccccc"
+                            height: 30
+                            color: "#f8f9fa"
+                            radius: 6
+                            
+                            Label {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 10
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "UDP信息统计"
+                                font.bold: true
+                                color: "#2c3e50"
+                                font.pixelSize: 13
+                            }
                         }
                         
                         // UDP信息统计
@@ -1057,18 +1343,22 @@ Window {
                             spacing: 12
                             Label {
                                 text: "已接收:"
-                                color: "#333333"
+                                color: "#555555"
+                                font.pixelSize: 12
                             }
                             Label {
                                 id: packetCountLabel
                                 text: udpComm.packetCount.toString()
                                 color: "#006600"
                                 font.bold: true
-                                font.pixelSize: 14
+                                font.pixelSize: 13
+                                Layout.preferredWidth: 80
+                                horizontalAlignment: Text.AlignRight
                             }
                             Label {
                                 text: "条"
-                                color: "#333333"
+                                color: "#555555"
+                                font.pixelSize: 12
                             }
                             Label {
                                 text: "|"
@@ -1076,22 +1366,22 @@ Window {
                             }
                             Label {
                                 text: "接收速率:"
-                                color: "#333333"
+                                color: "#555555"
+                                font.pixelSize: 12
                             }
                             Label {
                                 id: rateLabel
                                 text: udpComm.packetsPerSecond.toString()
                                 color: "#0066cc"
                                 font.bold: true
-                                font.pixelSize: 14
+                                font.pixelSize: 13
+                                Layout.preferredWidth: 60
+                                horizontalAlignment: Text.AlignRight
                             }
                             Label {
                                 text: "条/秒"
-                                color: "#333333"
-                            }
-                            Button {
-                                text: "重置计数"
-                                onClicked: udpComm.resetPacketCount()
+                                color: "#555555"
+                                font.pixelSize: 12
                             }
                             Item { Layout.fillWidth: true }
                         }
@@ -1101,15 +1391,16 @@ Window {
                             spacing: 8
                             Label {
                                 text: "数据包信息:"
-                                color: "#333333"
+                                color: "#555555"
+                                font.pixelSize: 12
                                 Layout.preferredWidth: 80
                             }
                             Label {
                                 id: udpPacketInfoLabel
                                 text: "最新数据包信息将在这里显示"
                                 wrapMode: Label.Wrap
-                                color: "#333333"
-                                font.pixelSize: 11
+                                color: "#666666"
+                                font.pixelSize: 12
                                 Layout.fillWidth: true
                             }
                         }
