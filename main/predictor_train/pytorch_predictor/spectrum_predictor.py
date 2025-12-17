@@ -224,20 +224,46 @@ class SpectrumPredictor:
         
         Args:
             filepath: 保存路径
+        
+        注意：
+            - 无论训练时使用的是 GPU 还是 CPU，导出时都会将模型移到 CPU
+            - 这样可以确保导出的 JIT 模型可以在任何设备上加载使用（包括 C++ 接口）
+            - 如果训练时使用 GPU，导出后模型会自动移回 GPU，不影响后续训练或推理
         """
         if not self.is_trained:
             raise ValueError("模型尚未训练")
         
         self.model.eval()
         
-        # 创建示例输入（标准化后的）
-        example_input = torch.FloatTensor(self.scaler.transform(np.zeros((1, self.input_size)))).to(self.device)
+        # 保存当前设备，以便导出后恢复
+        original_device = next(self.model.parameters()).device
         
-        # 导出为 TorchScript
+        # 【重要】将模型临时移到 CPU 进行导出
+        # 原因：如果使用 GPU 训练，torch.jit.trace 会记录设备信息
+        #       导出的 JIT 模型会包含 GPU 设备信息，导致在 CPU 上加载失败
+        #       或者在 C++ 接口中无法正常使用
+        # 解决方案：导出前将模型移到 CPU，确保导出的模型是 CPU 兼容的
+        self.model = self.model.cpu()
+        
+        # 创建示例输入（标准化后的），确保在 CPU 上
+        # 注意：示例输入也必须在 CPU 上，与模型设备保持一致
+        example_input = torch.FloatTensor(self.scaler.transform(np.zeros((1, self.input_size))))
+        # 明确指定在 CPU 上（虽然默认就是 CPU，但为了代码清晰性）
+        example_input = example_input.to('cpu')
+        
+        # 导出为 TorchScript（此时模型和输入都在 CPU 上）
         traced_model = torch.jit.trace(self.model, example_input)
         traced_model.save(filepath)
         
+        # 【可选】如果原来在 GPU 上训练，将模型移回 GPU
+        # 这样如果后续还需要继续使用这个模型进行训练或推理，可以继续使用 GPU
+        # 注意：如果后续不再使用 GPU，可以注释掉这行以节省显存
+        if original_device.type == 'cuda':
+            self.model = self.model.to(original_device)
+            print(f"模型已移回原设备: {original_device}")
+        
         print(f"模型已保存为 JIT 格式: {filepath}")
+        print(f"注意：导出的 JIT 模型是 CPU 兼容的，可以在任何设备上加载使用")
     
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
