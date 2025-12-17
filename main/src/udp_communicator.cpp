@@ -55,6 +55,18 @@ bool UdpCommunicator::startReceiving(int port, const QString &bindAddress) {
     if (predictorManager_) {
       spectrumProcessor_->setPredictorManager(predictorManager_);
     }
+    
+    // 恢复已保存的黑白参考数据（如果存在）
+    // 原因：停止获取光谱时会删除 spectrumProcessor_，但黑白参考数据仍保存在 UdpCommunicator 中
+    //       重新开始获取光谱时创建了新的 spectrumProcessor_，需要将之前保存的数据传递给它
+    const int dataPoints = 1024;
+    if (!blackReferenceData_.empty() && blackReferenceData_.size() == dataPoints) {
+      spectrumProcessor_->setBlackReferenceData(blackReferenceData_);
+    }
+    if (!whiteReferenceData_.empty() && whiteReferenceData_.size() == dataPoints) {
+      spectrumProcessor_->setWhiteReferenceData(whiteReferenceData_);
+    }
+    
     spectrumProcessor_->start();  // 启动处理线程
   }
 
