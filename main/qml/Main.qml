@@ -573,7 +573,6 @@ Window {
                             Canvas {
                                 id: spectrumCanvas
                                 anchors.fill: parent
-                                anchors.margins: 10
 
                                 onPaint: {
                                     var ctx = getContext("2d")
@@ -595,28 +594,128 @@ Window {
                                     var range = maxVal - minVal
                                     if (range === 0) range = 1  // 避免除零
 
-                                    // 绘制坐标轴
-                                    ctx.strokeStyle = "#cccccc"
+                                    // 计算绘图区域（排除边距，为坐标轴标签和刻度留出空间）
+                                    var leftMargin = 75   // 左侧边距（Y 轴标签和刻度，增加空间避免遮挡）
+                                    var rightMargin = 20  // 右侧边距
+                                    var topMargin = 30    // 顶部边距
+                                    var bottomMargin = 50 // 底部边距（X 轴标签和刻度）
+                                    
+                                    var plotLeft = leftMargin
+                                    var plotRight = width - rightMargin
+                                    var plotTop = topMargin
+                                    var plotBottom = height - bottomMargin
+                                    var plotWidth = plotRight - plotLeft
+                                    var plotHeight = plotBottom - plotTop
+
+                                    // 绘制网格线
+                                    ctx.strokeStyle = "#e0e0e0"
                                     ctx.lineWidth = 1
+                                    ctx.setLineDash([5, 5])
+                                    
+                                    // 垂直网格线（X 方向）
+                                    var gridCountX = 5
+                                    for (var gx = 0; gx <= gridCountX; gx++) {
+                                        var gridX = plotLeft + (plotWidth * gx / gridCountX)
+                                        ctx.beginPath()
+                                        ctx.moveTo(gridX, plotTop)
+                                        ctx.lineTo(gridX, plotBottom)
+                                        ctx.stroke()
+                                    }
+                                    
+                                    // 水平网格线（Y 方向）
+                                    var gridCountY = 5
+                                    for (var gy = 0; gy <= gridCountY; gy++) {
+                                        var gridY = plotTop + (plotHeight * gy / gridCountY)
+                                        ctx.beginPath()
+                                        ctx.moveTo(plotLeft, gridY)
+                                        ctx.lineTo(plotRight, gridY)
+                                        ctx.stroke()
+                                    }
+                                    
+                                    ctx.setLineDash([])  // 重置虚线
+
+                                    // 绘制坐标轴
+                                    ctx.strokeStyle = "#333333"
+                                    ctx.lineWidth = 2
                                     ctx.beginPath()
-                                    ctx.moveTo(0, height - 1)
-                                    ctx.lineTo(width, height - 1)
-                                    ctx.moveTo(0, height - 1)
-                                    ctx.lineTo(0, 0)
+                                    ctx.moveTo(plotLeft, plotBottom)
+                                    ctx.lineTo(plotRight, plotBottom)  // X 轴
+                                    ctx.moveTo(plotLeft, plotBottom)
+                                    ctx.lineTo(plotLeft, plotTop)  // Y 轴
                                     ctx.stroke()
+
+                                    // 绘制 X 轴刻度
+                                    ctx.strokeStyle = "#333333"
+                                    ctx.lineWidth = 1
+                                    ctx.fillStyle = "#333333"
+                                    ctx.font = "10px sans-serif"
+                                    ctx.textAlign = "center"
+                                    ctx.textBaseline = "top"
+                                    
+                                    for (var tx = 0; tx <= gridCountX; tx++) {
+                                        var tickX = plotLeft + (plotWidth * tx / gridCountX)
+                                        var xValue = (dataPoints - 1) * tx / gridCountX
+                                        
+                                        // 绘制刻度线
+                                        ctx.beginPath()
+                                        ctx.moveTo(tickX, plotBottom)
+                                        ctx.lineTo(tickX, plotBottom + 5)
+                                        ctx.stroke()
+                                        
+                                        // 绘制刻度值（确保在 Canvas 范围内）
+                                        if (tickX >= 0 && tickX <= width) {
+                                            ctx.fillText(xValue.toFixed(0), tickX, plotBottom + 8)
+                                        }
+                                    }
+                                    
+                                    // 绘制 Y 轴刻度
+                                    ctx.textAlign = "right"
+                                    ctx.textBaseline = "middle"
+                                    for (var ty = 0; ty <= gridCountY; ty++) {
+                                        var tickY = plotTop + (plotHeight * ty / gridCountY)
+                                        var yValue = maxVal - (range * ty / gridCountY)
+                                        
+                                        // 绘制刻度线
+                                        ctx.beginPath()
+                                        ctx.moveTo(plotLeft - 5, tickY)
+                                        ctx.lineTo(plotLeft, tickY)
+                                        ctx.stroke()
+                                        
+                                        // 绘制刻度值（确保在 Canvas 范围内，显示小数，位置在标签左侧）
+                                        if (tickY >= 0 && tickY <= height) {
+                                            // 根据数值大小决定小数位数
+                                            var decimals = range > 1000 ? 0 : (range > 100 ? 1 : (range > 10 ? 2 : 3))
+                                            ctx.fillText(yValue.toFixed(decimals), plotLeft - 12, tickY)
+                                        }
+                                    }
+
+                                    // 绘制坐标轴标签
+                                    ctx.fillStyle = "#333333"
+                                    ctx.font = "bold 12px sans-serif"
+                                    ctx.textAlign = "center"
+                                    ctx.textBaseline = "top"
+                                    // X 轴标签
+                                    ctx.fillText("数据点索引", plotLeft + plotWidth / 2, plotBottom + 25)
+                                    
+                                    // Y 轴标签（旋转90度，放在最左侧避免遮挡刻度）
+                                    ctx.save()
+                                    ctx.translate(5, plotTop + plotHeight / 2)
+                                    ctx.rotate(-Math.PI / 2)
+                                    ctx.fillText("强度值", 0, 0)
+                                    ctx.restore()
 
                                     // 绘制曲线
                                     ctx.strokeStyle = "#0066cc"
                                     ctx.lineWidth = 2
                                     ctx.beginPath()
                                     
-                                    var stepX = width / (dataPoints - 1)
+                                    var stepX = plotWidth / (dataPoints - 1)
                                     for (var i = 0; i < dataPoints; i++) {
-                                        var x = i * stepX
+                                        var x = plotLeft + i * stepX
                                         var value = spectrumData[i]
-                                        // 归一化到0-height范围，并翻转Y轴（因为Canvas的Y轴向下）
+                                        // 归一化到0-plotHeight范围，并翻转Y轴（因为Canvas的Y轴向下）
                                         var normalized = (value - minVal) / range
-                                        var y = height - 1 - normalized * (height - 2)
+                                        var y = plotBottom - normalized * plotHeight
                                         
                                         if (i === 0) {
                                             ctx.moveTo(x, y)
@@ -628,10 +727,11 @@ Window {
 
                                     // 绘制信息文本
                                     ctx.fillStyle = "#333333"
-                                    ctx.font = "12px sans-serif"
-                                    ctx.fillText("最小值: " + minVal.toFixed(0), 10, 20)
-                                    ctx.fillText("最大值: " + maxVal.toFixed(0), 10, 35)
-                                    ctx.fillText("数据包数: " + spectrumPacketCount, 10, 50)
+                                    ctx.font = "11px sans-serif"
+                                    ctx.textAlign = "left"
+                                    ctx.fillText("最小值: " + minVal.toFixed(0), plotLeft + 5, plotTop + 15)
+                                    ctx.fillText("最大值: " + maxVal.toFixed(0), plotLeft + 5, plotTop + 30)
+                                    ctx.fillText("数据包数: " + spectrumPacketCount, plotLeft + 5, plotTop + 45)
                                 }
                             }
                         }
@@ -661,7 +761,6 @@ Window {
                             Canvas {
                                 id: predictionCanvas
                                 anchors.fill: parent
-                                anchors.margins: 10
 
                                 onPaint: {
                                     var ctx = getContext("2d")
@@ -677,7 +776,7 @@ Window {
                                     var dataPoints = predictionHistory.length
                                     if (dataPoints === 0) return
 
-                                    // 计算最小值和最大值
+                                    // 计算最小值和最大值（添加一些边距）
                                     var minVal = predictionHistory[0]
                                     var maxVal = predictionHistory[0]
                                     for (var i = 1; i < dataPoints; i++) {
@@ -685,30 +784,138 @@ Window {
                                         if (predictionHistory[i] > maxVal) maxVal = predictionHistory[i]
                                     }
                                     var range = maxVal - minVal
-                                    if (range === 0) range = 1  // 避免除零
+                                    if (range === 0) {
+                                        range = 1
+                                        minVal -= 0.5
+                                        maxVal += 0.5
+                                    } else {
+                                        // 添加 10% 的边距
+                                        var margin = range * 0.1
+                                        minVal -= margin
+                                        maxVal += margin
+                                        range = maxVal - minVal
+                                    }
+
+                                    // 计算绘图区域（排除边距，为坐标轴标签和刻度留出空间）
+                                    var leftMargin = 75   // 左侧边距（Y 轴标签和刻度，增加空间避免遮挡）
+                                    var rightMargin = 20  // 右侧边距
+                                    var topMargin = 30    // 顶部边距
+                                    var bottomMargin = 50 // 底部边距（X 轴标签和刻度）
+                                    
+                                    var plotLeft = leftMargin
+                                    var plotRight = width - rightMargin
+                                    var plotTop = topMargin
+                                    var plotBottom = height - bottomMargin
+                                    var plotWidth = plotRight - plotLeft
+                                    var plotHeight = plotBottom - plotTop
+
+                                    // 绘制网格线
+                                    ctx.strokeStyle = "#e0e0e0"
+                                    ctx.lineWidth = 1
+                                    ctx.setLineDash([5, 5])
+                                    
+                                    // 垂直网格线（X 方向）
+                                    var gridCountX = 5
+                                    for (var gx = 0; gx <= gridCountX; gx++) {
+                                        var gridX = plotLeft + (plotWidth * gx / gridCountX)
+                                        ctx.beginPath()
+                                        ctx.moveTo(gridX, plotTop)
+                                        ctx.lineTo(gridX, plotBottom)
+                                        ctx.stroke()
+                                    }
+                                    
+                                    // 水平网格线（Y 方向）
+                                    var gridCountY = 5
+                                    for (var gy = 0; gy <= gridCountY; gy++) {
+                                        var gridY = plotTop + (plotHeight * gy / gridCountY)
+                                        ctx.beginPath()
+                                        ctx.moveTo(plotLeft, gridY)
+                                        ctx.lineTo(plotRight, gridY)
+                                        ctx.stroke()
+                                    }
+                                    
+                                    ctx.setLineDash([])  // 重置虚线
 
                                     // 绘制坐标轴
-                                    ctx.strokeStyle = "#cccccc"
-                                    ctx.lineWidth = 1
+                                    ctx.strokeStyle = "#333333"
+                                    ctx.lineWidth = 2
                                     ctx.beginPath()
-                                    ctx.moveTo(0, height - 1)
-                                    ctx.lineTo(width, height - 1)
-                                    ctx.moveTo(0, height - 1)
-                                    ctx.lineTo(0, 0)
+                                    ctx.moveTo(plotLeft, plotBottom)
+                                    ctx.lineTo(plotRight, plotBottom)  // X 轴
+                                    ctx.moveTo(plotLeft, plotBottom)
+                                    ctx.lineTo(plotLeft, plotTop)  // Y 轴
                                     ctx.stroke()
+
+                                    // 绘制 X 轴刻度
+                                    ctx.strokeStyle = "#333333"
+                                    ctx.lineWidth = 1
+                                    ctx.fillStyle = "#333333"
+                                    ctx.font = "10px sans-serif"
+                                    ctx.textAlign = "center"
+                                    ctx.textBaseline = "top"
+                                    
+                                    for (var tx = 0; tx <= gridCountX; tx++) {
+                                        var tickX = plotLeft + (plotWidth * tx / gridCountX)
+                                        var xValue = (dataPoints - 1) * tx / gridCountX
+                                        
+                                        // 绘制刻度线
+                                        ctx.beginPath()
+                                        ctx.moveTo(tickX, plotBottom)
+                                        ctx.lineTo(tickX, plotBottom + 5)
+                                        ctx.stroke()
+                                        
+                                        // 绘制刻度值（确保在 Canvas 范围内）
+                                        if (tickX >= 0 && tickX <= width) {
+                                            ctx.fillText(xValue.toFixed(0), tickX, plotBottom + 8)
+                                        }
+                                    }
+                                    
+                                    // 绘制 Y 轴刻度
+                                    ctx.textAlign = "right"
+                                    ctx.textBaseline = "middle"
+                                    for (var ty = 0; ty <= gridCountY; ty++) {
+                                        var tickY = plotTop + (plotHeight * ty / gridCountY)
+                                        var yValue = maxVal - (range * ty / gridCountY)
+                                        
+                                        // 绘制刻度线
+                                        ctx.beginPath()
+                                        ctx.moveTo(plotLeft - 5, tickY)
+                                        ctx.lineTo(plotLeft, tickY)
+                                        ctx.stroke()
+                                        
+                                        // 绘制刻度值（确保在 Canvas 范围内，位置在标签左侧）
+                                        if (tickY >= 0 && tickY <= height) {
+                                            ctx.fillText(yValue.toFixed(4), plotLeft - 12, tickY)
+                                        }
+                                    }
+
+                                    // 绘制坐标轴标签
+                                    ctx.fillStyle = "#333333"
+                                    ctx.font = "bold 12px sans-serif"
+                                    ctx.textAlign = "center"
+                                    ctx.textBaseline = "top"
+                                    // X 轴标签
+                                    ctx.fillText("预测序号", plotLeft + plotWidth / 2, plotBottom + 25)
+                                    
+                                    // Y 轴标签（旋转90度，放在最左侧避免遮挡刻度）
+                                    ctx.save()
+                                    ctx.translate(5, plotTop + plotHeight / 2)
+                                    ctx.rotate(-Math.PI / 2)
+                                    ctx.fillText("预测值", 0, 0)
+                                    ctx.restore()
 
                                     // 绘制曲线
                                     ctx.strokeStyle = "#cc6600"
                                     ctx.lineWidth = 2
                                     ctx.beginPath()
                                     
-                                    var stepX = width / (dataPoints - 1)
+                                    var stepX = plotWidth / (dataPoints - 1)
                                     for (var i = 0; i < dataPoints; i++) {
-                                        var x = i * stepX
+                                        var x = plotLeft + i * stepX
                                         var value = predictionHistory[i]
-                                        // 归一化到0-height范围，并翻转Y轴（因为Canvas的Y轴向下）
+                                        // 归一化到0-plotHeight范围，并翻转Y轴（因为Canvas的Y轴向下）
                                         var normalized = (value - minVal) / range
-                                        var y = height - 1 - normalized * (height - 2)
+                                        var y = plotBottom - normalized * plotHeight
                                         
                                         if (i === 0) {
                                             ctx.moveTo(x, y)
@@ -721,10 +928,10 @@ Window {
                                     // 绘制数据点
                                     ctx.fillStyle = "#cc6600"
                                     for (var i = 0; i < dataPoints; i++) {
-                                        var x = i * stepX
+                                        var x = plotLeft + i * stepX
                                         var value = predictionHistory[i]
                                         var normalized = (value - minVal) / range
-                                        var y = height - 1 - normalized * (height - 2)
+                                        var y = plotBottom - normalized * plotHeight
                                         ctx.beginPath()
                                         ctx.arc(x, y, 3, 0, 2 * Math.PI)
                                         ctx.fill()
@@ -732,11 +939,15 @@ Window {
 
                                     // 绘制信息文本
                                     ctx.fillStyle = "#333333"
-                                    ctx.font = "12px sans-serif"
-                                    ctx.fillText("最小值: " + minVal.toFixed(4), 10, 20)
-                                    ctx.fillText("最大值: " + maxVal.toFixed(4), 10, 35)
-                                    ctx.fillText("当前值: " + (predictionHistory.length > 0 ? predictionHistory[predictionHistory.length - 1].toFixed(4) : "N/A"), 10, 50)
-                                    ctx.fillText("数据点数: " + dataPoints + " / 10", 10, 65)
+                                    ctx.font = "11px sans-serif"
+                                    ctx.textAlign = "left"
+                                    var actualMin = Math.min.apply(null, predictionHistory)
+                                    var actualMax = Math.max.apply(null, predictionHistory)
+                                    var currentValue = predictionHistory[predictionHistory.length - 1]
+                                    ctx.fillText("最小值: " + actualMin.toFixed(4), plotLeft + 5, plotTop + 15)
+                                    ctx.fillText("最大值: " + actualMax.toFixed(4), plotLeft + 5, plotTop + 30)
+                                    ctx.fillText("当前值: " + currentValue.toFixed(4), plotLeft + 5, plotTop + 45)
+                                    ctx.fillText("数据点数: " + dataPoints + " / 10", plotLeft + 5, plotTop + 60)
                                 }
                             }
                         }
@@ -935,10 +1146,12 @@ Window {
 
         function onSpectrumReady(averagedSpectrum, minVal, maxVal, packetCount) {
             // 接收到后台线程处理好的光谱数据，更新显示（在主线程中执行，不阻塞）
+            console.log("onSpectrumReady - 数据大小:", averagedSpectrum ? averagedSpectrum.length : 0, "minVal:", minVal, "maxVal:", maxVal)
             spectrumData = averagedSpectrum
             spectrumMinVal = minVal
             spectrumMaxVal = maxVal
             spectrumPacketCount = packetCount
+            // 强制刷新图表
             spectrumCanvas.requestPaint()
             // 同步刷新预测结果曲线
             predictionCanvas.requestPaint()
@@ -986,7 +1199,8 @@ Window {
                 if (predictionHistory.length > 10) {
                     predictionHistory.shift()
                 }
-                // 刷新预测结果曲线
+                console.log("onPredictionReady - predictionHistory 大小:", predictionHistory.length, "最新值:", predictionValue)
+                // 强制刷新预测结果曲线
                 predictionCanvas.requestPaint()
             }
         }
