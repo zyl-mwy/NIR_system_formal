@@ -1,3 +1,4 @@
+## Basic Git Command
 * sudo apt install git
 * cd ~/.ssh
 * ls | grep pub
