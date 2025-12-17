@@ -10,6 +10,9 @@
 * git init
 
 * git add .
+
+* git config --global user.email "1909992592@qq.com"
+* git config --global user.name "zyl-mwy"
 * git commit -m "xxx"
 
 * git remote add origin git@github.com:zyl-mwy/NIR_system_formal.git
