@@ -13,7 +13,7 @@ UdpCommunicator::UdpCommunicator(QObject *parent)
       receiving_(false), packetCount_(0), packetsPerSecond_(0), packetsThisSecond_(0), 
       blackReferenceAccumulating_(false), blackReferenceProgress_(0),
       whiteReferenceAccumulating_(false), whiteReferenceProgress_(0),
-      predictorManager_(nullptr) {
+      predictorManager_(nullptr), currentPredictorIndex_(-1) {
   // 创建每秒统计定时器
   secondTimer_ = new QTimer(this);
   secondTimer_->setInterval(1000);  // 1秒
@@ -65,6 +65,13 @@ bool UdpCommunicator::startReceiving(int port, const QString &bindAddress) {
     }
     if (!whiteReferenceData_.empty() && whiteReferenceData_.size() == dataPoints) {
       spectrumProcessor_->setWhiteReferenceData(whiteReferenceData_);
+    }
+    
+    // 恢复预测器索引（如果之前已启用）
+    // 原因：停止获取光谱时会删除 spectrumProcessor_，但预测器索引仍保存在 UdpCommunicator 中
+    //       重新开始获取光谱时创建了新的 spectrumProcessor_，需要将之前保存的预测器索引传递给它
+    if (currentPredictorIndex_ >= 0) {
+      spectrumProcessor_->setPredictorIndex(currentPredictorIndex_);
     }
     
     spectrumProcessor_->start();  // 启动处理线程
@@ -376,7 +383,10 @@ void UdpCommunicator::setPredictorManager(SpectrumPredictorManager *manager) {
 }
 
 void UdpCommunicator::setPredictorIndex(int index) {
-  // 设置预测器索引
+  // 保存预测器索引
+  currentPredictorIndex_ = index;
+  
+  // 设置预测器索引到光谱处理线程（如果存在）
   if (spectrumProcessor_) {
     spectrumProcessor_->setPredictorIndex(index);
   }

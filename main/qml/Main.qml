@@ -408,6 +408,9 @@ Window {
                                 currentPredictorIndex = -1
                                 predictionResultLabel.text = "正在切换预测器..."
                                 predictionResultLabel.color = "#0066cc"
+                                // 清空预测历史
+                                predictionHistory = []
+                                predictionCanvas.requestPaint()
                             }
                             
                             // 自动加载对应文件夹的模型
@@ -447,6 +450,9 @@ Window {
                                 currentPredictorIndex = -1
                                 predictionResultLabel.text = "预测已禁用"
                                 predictionResultLabel.color = "#666666"
+                                // 清空预测历史
+                                predictionHistory = []
+                                predictionCanvas.requestPaint()
                             }
                         }
                             }
@@ -481,12 +487,18 @@ Window {
                                     currentPredictorIndex = -1
                                     predictionResultLabel.text = "预测已禁用"
                                     predictionResultLabel.color = "#666666"
+                                    // 清空预测历史
+                                    predictionHistory = []
+                                    predictionCanvas.requestPaint()
                                 } else {
                                     const index = predictorComboBox.currentIndex
                                     udpComm.setPredictorIndex(index)
                                     currentPredictorIndex = index
                                     predictionResultLabel.text = "预测已启用，等待数据..."
                                     predictionResultLabel.color = "#0066cc"
+                                    // 清空预测历史，重新开始
+                                    predictionHistory = []
+                                    predictionCanvas.requestPaint()
                                 }
                             }
                         }
@@ -526,86 +538,210 @@ Window {
                 }
 
                 Label {
-                    text: "光谱曲线 (每3950条数据更新一次，后台线程处理)"
+                    text: "光谱曲线与预测结果曲线"
                     font.bold: true
                     color: "#333333"
                     Layout.fillWidth: true
                 }
 
-                Rectangle {
-                    id: spectrumChartContainer
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 200
-                    Layout.fillHeight: true
-            color: "#f5f5f5"
-            border.color: "#cccccc"
-            border.width: 1
+                    spacing: 12
 
-            Canvas {
-                id: spectrumCanvas
-                anchors.fill: parent
-                anchors.margins: 10
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        spacing: 4
 
-                onPaint: {
-                    var ctx = getContext("2d")
-                    ctx.clearRect(0, 0, width, height)
-                    
-                    if (!spectrumData || spectrumData.length === 0) {
-                        ctx.fillStyle = "#999999"
-                        ctx.font = "14px sans-serif"
-                        ctx.fillText("等待数据...", width / 2 - 50, height / 2)
-                        return
-                    }
+                        Label {
+                            text: "光谱曲线 (每3950条数据更新一次)"
+                            font.bold: true
+                            color: "#333333"
+                            font.pixelSize: 12
+                            Layout.fillWidth: true
+                        }
 
-                    var dataPoints = spectrumData.length
-                    if (dataPoints === 0) return
+                        Rectangle {
+                            id: spectrumChartContainer
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            color: "#f5f5f5"
+                            border.color: "#cccccc"
+                            border.width: 1
 
-                    // 使用后台线程处理好的数据
-                    var minVal = spectrumMinVal
-                    var maxVal = spectrumMaxVal
-                    var range = maxVal - minVal
-                    if (range === 0) range = 1  // 避免除零
+                            Canvas {
+                                id: spectrumCanvas
+                                anchors.fill: parent
+                                anchors.margins: 10
 
-                    // 绘制坐标轴
-                    ctx.strokeStyle = "#cccccc"
-                    ctx.lineWidth = 1
-                    ctx.beginPath()
-                    ctx.moveTo(0, height - 1)
-                    ctx.lineTo(width, height - 1)
-                    ctx.moveTo(0, height - 1)
-                    ctx.lineTo(0, 0)
-                    ctx.stroke()
+                                onPaint: {
+                                    var ctx = getContext("2d")
+                                    ctx.clearRect(0, 0, width, height)
+                                    
+                                    if (!spectrumData || spectrumData.length === 0) {
+                                        ctx.fillStyle = "#999999"
+                                        ctx.font = "14px sans-serif"
+                                        ctx.fillText("等待数据...", width / 2 - 50, height / 2)
+                                        return
+                                    }
 
-                    // 绘制曲线
-                    ctx.strokeStyle = "#0066cc"
-                    ctx.lineWidth = 2
-                    ctx.beginPath()
-                    
-                    var stepX = width / (dataPoints - 1)
-                    for (var i = 0; i < dataPoints; i++) {
-                        var x = i * stepX
-                        var value = spectrumData[i]
-                        // 归一化到0-height范围，并翻转Y轴（因为Canvas的Y轴向下）
-                        var normalized = (value - minVal) / range
-                        var y = height - 1 - normalized * (height - 2)
-                        
-                        if (i === 0) {
-                            ctx.moveTo(x, y)
-                        } else {
-                            ctx.lineTo(x, y)
+                                    var dataPoints = spectrumData.length
+                                    if (dataPoints === 0) return
+
+                                    // 使用后台线程处理好的数据
+                                    var minVal = spectrumMinVal
+                                    var maxVal = spectrumMaxVal
+                                    var range = maxVal - minVal
+                                    if (range === 0) range = 1  // 避免除零
+
+                                    // 绘制坐标轴
+                                    ctx.strokeStyle = "#cccccc"
+                                    ctx.lineWidth = 1
+                                    ctx.beginPath()
+                                    ctx.moveTo(0, height - 1)
+                                    ctx.lineTo(width, height - 1)
+                                    ctx.moveTo(0, height - 1)
+                                    ctx.lineTo(0, 0)
+                                    ctx.stroke()
+
+                                    // 绘制曲线
+                                    ctx.strokeStyle = "#0066cc"
+                                    ctx.lineWidth = 2
+                                    ctx.beginPath()
+                                    
+                                    var stepX = width / (dataPoints - 1)
+                                    for (var i = 0; i < dataPoints; i++) {
+                                        var x = i * stepX
+                                        var value = spectrumData[i]
+                                        // 归一化到0-height范围，并翻转Y轴（因为Canvas的Y轴向下）
+                                        var normalized = (value - minVal) / range
+                                        var y = height - 1 - normalized * (height - 2)
+                                        
+                                        if (i === 0) {
+                                            ctx.moveTo(x, y)
+                                        } else {
+                                            ctx.lineTo(x, y)
+                                        }
+                                    }
+                                    ctx.stroke()
+
+                                    // 绘制信息文本
+                                    ctx.fillStyle = "#333333"
+                                    ctx.font = "12px sans-serif"
+                                    ctx.fillText("最小值: " + minVal.toFixed(0), 10, 20)
+                                    ctx.fillText("最大值: " + maxVal.toFixed(0), 10, 35)
+                                    ctx.fillText("数据包数: " + spectrumPacketCount, 10, 50)
+                                }
+                            }
                         }
                     }
-                    ctx.stroke()
 
-                    // 绘制信息文本
-                    ctx.fillStyle = "#333333"
-                    ctx.font = "12px sans-serif"
-                    ctx.fillText("最小值: " + minVal.toFixed(0), 10, 20)
-                    ctx.fillText("最大值: " + maxVal.toFixed(0), 10, 35)
-                    ctx.fillText("数据包数: " + spectrumPacketCount, 10, 50)
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        spacing: 4
+
+                        Label {
+                            text: "预测结果曲线 (最多10个数值)"
+                            font.bold: true
+                            color: "#333333"
+                            font.pixelSize: 12
+                            Layout.fillWidth: true
+                        }
+
+                        Rectangle {
+                            id: predictionChartContainer
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            color: "#f5f5f5"
+                            border.color: "#cccccc"
+                            border.width: 1
+
+                            Canvas {
+                                id: predictionCanvas
+                                anchors.fill: parent
+                                anchors.margins: 10
+
+                                onPaint: {
+                                    var ctx = getContext("2d")
+                                    ctx.clearRect(0, 0, width, height)
+                                    
+                                    if (!predictionHistory || predictionHistory.length === 0) {
+                                        ctx.fillStyle = "#999999"
+                                        ctx.font = "14px sans-serif"
+                                        ctx.fillText("等待预测结果...", width / 2 - 70, height / 2)
+                                        return
+                                    }
+
+                                    var dataPoints = predictionHistory.length
+                                    if (dataPoints === 0) return
+
+                                    // 计算最小值和最大值
+                                    var minVal = predictionHistory[0]
+                                    var maxVal = predictionHistory[0]
+                                    for (var i = 1; i < dataPoints; i++) {
+                                        if (predictionHistory[i] < minVal) minVal = predictionHistory[i]
+                                        if (predictionHistory[i] > maxVal) maxVal = predictionHistory[i]
+                                    }
+                                    var range = maxVal - minVal
+                                    if (range === 0) range = 1  // 避免除零
+
+                                    // 绘制坐标轴
+                                    ctx.strokeStyle = "#cccccc"
+                                    ctx.lineWidth = 1
+                                    ctx.beginPath()
+                                    ctx.moveTo(0, height - 1)
+                                    ctx.lineTo(width, height - 1)
+                                    ctx.moveTo(0, height - 1)
+                                    ctx.lineTo(0, 0)
+                                    ctx.stroke()
+
+                                    // 绘制曲线
+                                    ctx.strokeStyle = "#cc6600"
+                                    ctx.lineWidth = 2
+                                    ctx.beginPath()
+                                    
+                                    var stepX = width / (dataPoints - 1)
+                                    for (var i = 0; i < dataPoints; i++) {
+                                        var x = i * stepX
+                                        var value = predictionHistory[i]
+                                        // 归一化到0-height范围，并翻转Y轴（因为Canvas的Y轴向下）
+                                        var normalized = (value - minVal) / range
+                                        var y = height - 1 - normalized * (height - 2)
+                                        
+                                        if (i === 0) {
+                                            ctx.moveTo(x, y)
+                                        } else {
+                                            ctx.lineTo(x, y)
+                                        }
+                                    }
+                                    ctx.stroke()
+
+                                    // 绘制数据点
+                                    ctx.fillStyle = "#cc6600"
+                                    for (var i = 0; i < dataPoints; i++) {
+                                        var x = i * stepX
+                                        var value = predictionHistory[i]
+                                        var normalized = (value - minVal) / range
+                                        var y = height - 1 - normalized * (height - 2)
+                                        ctx.beginPath()
+                                        ctx.arc(x, y, 3, 0, 2 * Math.PI)
+                                        ctx.fill()
+                                    }
+
+                                    // 绘制信息文本
+                                    ctx.fillStyle = "#333333"
+                                    ctx.font = "12px sans-serif"
+                                    ctx.fillText("最小值: " + minVal.toFixed(4), 10, 20)
+                                    ctx.fillText("最大值: " + maxVal.toFixed(4), 10, 35)
+                                    ctx.fillText("当前值: " + (predictionHistory.length > 0 ? predictionHistory[predictionHistory.length - 1].toFixed(4) : "N/A"), 10, 50)
+                                    ctx.fillText("数据点数: " + dataPoints + " / 10", 10, 65)
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        }
             }
             }
             
@@ -804,6 +940,8 @@ Window {
             spectrumMaxVal = maxVal
             spectrumPacketCount = packetCount
             spectrumCanvas.requestPaint()
+            // 同步刷新预测结果曲线
+            predictionCanvas.requestPaint()
         }
 
         function onBlackReferenceProgressChanged(progress) {
@@ -838,6 +976,18 @@ Window {
                 predictionResultLabel.text = "预测值: " + predictionValue.toFixed(4)
                 predictionResultLabel.color = "#006600"
                 console.log("预测结果 [预测器", predictorIndex, "]:", predictionValue)
+                
+                // 更新预测结果历史（最多保存10个）
+                if (!predictionHistory) {
+                    predictionHistory = []
+                }
+                predictionHistory.push(predictionValue)
+                // 如果超过10个，移除最旧的数据
+                if (predictionHistory.length > 10) {
+                    predictionHistory.shift()
+                }
+                // 刷新预测结果曲线
+                predictionCanvas.requestPaint()
             }
         }
     }
@@ -882,6 +1032,7 @@ Window {
     property double whiteReferenceMaxVal: 0
     property int currentPredictorIndex: -1  // 当前使用的预测器索引（-1表示未启用）
     property bool currentModelLoaded: false  // 当前选中预测器的模型加载状态
+    property var predictionHistory: []  // 存储预测结果历史（最多10个）
 
     Connections {
         target: serialComm

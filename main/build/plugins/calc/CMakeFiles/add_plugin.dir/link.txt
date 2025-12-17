@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -shared  -o ../add_plugin.so CMakeFiles/add_plugin.dir/add_plugin_autogen/mocs_compilation.cpp.o CMakeFiles/add_plugin.dir/add_plugin.cpp.o  -Wl,-rpath,/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib /home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/libQt6Core.so.6.10.1 

@@ -99,5 +99,6 @@ class UdpCommunicator : public QObject {
   QVariantList blackReferenceData_;  // 存储黑参考数据
   QVariantList whiteReferenceData_;  // 存储白参考数据
   SpectrumPredictorManager *predictorManager_;  // 预测器管理器
+  int currentPredictorIndex_;  // 当前使用的预测器索引（-1表示未启用）
 };
 

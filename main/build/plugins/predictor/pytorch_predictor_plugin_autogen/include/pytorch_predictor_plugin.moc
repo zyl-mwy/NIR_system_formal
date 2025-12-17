@@ -1,0 +1,133 @@
+/****************************************************************************
+** Meta object code from reading C++ file 'pytorch_predictor_plugin.cpp'
+**
+** Created by: The Qt Meta Object Compiler version 69 (Qt 6.10.1)
+**
+** WARNING! All changes made in this file will be lost!
+*****************************************************************************/
+
+#include <QtCore/qmetatype.h>
+#include <QtCore/qplugin.h>
+
+#include <QtCore/qtmochelpers.h>
+
+#include <memory>
+
+
+#include <QtCore/qxptype_traits.h>
+#if !defined(Q_MOC_OUTPUT_REVISION)
+#error "The header file 'pytorch_predictor_plugin.cpp' doesn't include <QObject>."
+#elif Q_MOC_OUTPUT_REVISION != 69
+#error "This file was generated using the moc from 6.10.1. It"
+#error "cannot be used with the include files from this version of Qt."
+#error "(The moc has changed too much.)"
+#endif
+
+#ifndef Q_CONSTINIT
+#define Q_CONSTINIT
+#endif
+
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+QT_WARNING_DISABLE_GCC("-Wuseless-cast")
+namespace {
+struct qt_meta_tag_ZN22PyTorchPredictorPluginE_t {};
+} // unnamed namespace
+
+template <> constexpr inline auto PyTorchPredictorPlugin::qt_create_metaobjectdata<qt_meta_tag_ZN22PyTorchPredictorPluginE_t>()
+{
+    namespace QMC = QtMocConstants;
+    QtMocHelpers::StringRefStorage qt_stringData {
+        "PyTorchPredictorPlugin"
+    };
+
+    QtMocHelpers::UintData qt_methods {
+    };
+    QtMocHelpers::UintData qt_properties {
+    };
+    QtMocHelpers::UintData qt_enums {
+    };
+    return QtMocHelpers::metaObjectData<PyTorchPredictorPlugin, qt_meta_tag_ZN22PyTorchPredictorPluginE_t>(QMC::MetaObjectFlag{}, qt_stringData,
+            qt_methods, qt_properties, qt_enums);
+}
+Q_CONSTINIT const QMetaObject PyTorchPredictorPlugin::staticMetaObject = { {
+    QMetaObject::SuperData::link<QObject::staticMetaObject>(),
+    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN22PyTorchPredictorPluginE_t>.stringdata,
+    qt_staticMetaObjectStaticContent<qt_meta_tag_ZN22PyTorchPredictorPluginE_t>.data,
+    qt_static_metacall,
+    nullptr,
+    qt_staticMetaObjectRelocatingContent<qt_meta_tag_ZN22PyTorchPredictorPluginE_t>.metaTypes,
+    nullptr
+} };
+
+void PyTorchPredictorPlugin::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
+    auto *_t = static_cast<PyTorchPredictorPlugin *>(_o);
+    (void)_t;
+    (void)_c;
+    (void)_id;
+    (void)_a;
+}
+
+const QMetaObject *PyTorchPredictorPlugin::metaObject() const
+{
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
+}
+
+void *PyTorchPredictorPlugin::qt_metacast(const char *_clname)
+{
+    if (!_clname) return nullptr;
+    if (!strcmp(_clname, qt_staticMetaObjectStaticContent<qt_meta_tag_ZN22PyTorchPredictorPluginE_t>.strings))
+        return static_cast<void*>(this);
+    if (!strcmp(_clname, "SpectrumPredictorPlugin"))
+        return static_cast< SpectrumPredictorPlugin*>(this);
+    if (!strcmp(_clname, "org.demo.SpectrumPredictorPlugin/1.0"))
+        return static_cast< SpectrumPredictorPlugin*>(this);
+    return QObject::qt_metacast(_clname);
+}
+
+int PyTorchPredictorPlugin::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+{
+    _id = QObject::qt_metacall(_c, _id, _a);
+    return _id;
+}
+
+#ifdef QT_MOC_EXPORT_PLUGIN_V2
+static constexpr unsigned char qt_pluginMetaDataV2_PyTorchPredictorPlugin[] = {
+    0xbf, 
+    // "IID"
+    0x02,  0x78,  0x24,  'o',  'r',  'g',  '.',  'd', 
+    'e',  'm',  'o',  '.',  'S',  'p',  'e',  'c', 
+    't',  'r',  'u',  'm',  'P',  'r',  'e',  'd', 
+    'i',  'c',  't',  'o',  'r',  'P',  'l',  'u', 
+    'g',  'i',  'n',  '/',  '1',  '.',  '0', 
+    // "className"
+    0x03,  0x76,  'P',  'y',  'T',  'o',  'r',  'c', 
+    'h',  'P',  'r',  'e',  'd',  'i',  'c',  't', 
+    'o',  'r',  'P',  'l',  'u',  'g',  'i',  'n', 
+    0xff, 
+};
+QT_MOC_EXPORT_PLUGIN_V2(PyTorchPredictorPlugin, PyTorchPredictorPlugin, qt_pluginMetaDataV2_PyTorchPredictorPlugin)
+#else
+QT_PLUGIN_METADATA_SECTION
+Q_CONSTINIT static constexpr unsigned char qt_pluginMetaData_PyTorchPredictorPlugin[] = {
+    'Q', 'T', 'M', 'E', 'T', 'A', 'D', 'A', 'T', 'A', ' ', '!',
+    // metadata version, Qt version, architectural requirements
+    0, QT_VERSION_MAJOR, QT_VERSION_MINOR, qPluginArchRequirements(),
+    0xbf, 
+    // "IID"
+    0x02,  0x78,  0x24,  'o',  'r',  'g',  '.',  'd', 
+    'e',  'm',  'o',  '.',  'S',  'p',  'e',  'c', 
+    't',  'r',  'u',  'm',  'P',  'r',  'e',  'd', 
+    'i',  'c',  't',  'o',  'r',  'P',  'l',  'u', 
+    'g',  'i',  'n',  '/',  '1',  '.',  '0', 
+    // "className"
+    0x03,  0x76,  'P',  'y',  'T',  'o',  'r',  'c', 
+    'h',  'P',  'r',  'e',  'd',  'i',  'c',  't', 
+    'o',  'r',  'P',  'l',  'u',  'g',  'i',  'n', 
+    0xff, 
+};
+QT_MOC_EXPORT_PLUGIN(PyTorchPredictorPlugin, PyTorchPredictorPlugin)
+#endif  // QT_MOC_EXPORT_PLUGIN_V2
+
+QT_WARNING_POP
