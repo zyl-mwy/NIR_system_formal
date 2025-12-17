@@ -1,0 +1,35 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/calc_app_autogen.dir/AutogenUsed.txt"
+  "CMakeFiles/calc_app_autogen.dir/ParseCache.txt"
+  "calc_app_autogen"
+  "CMakeFiles/calc_app.dir/calc_app_autogen/3YJK5W5UP7/qrc_qml.cpp.o"
+  "CMakeFiles/calc_app.dir/calc_app_autogen/3YJK5W5UP7/qrc_qml.cpp.o.d"
+  "CMakeFiles/calc_app.dir/calc_app_autogen/mocs_compilation.cpp.o"
+  "CMakeFiles/calc_app.dir/calc_app_autogen/mocs_compilation.cpp.o.d"
+  "CMakeFiles/calc_app.dir/src/main.cpp.o"
+  "CMakeFiles/calc_app.dir/src/main.cpp.o.d"
+  "CMakeFiles/calc_app.dir/src/plugin_manager.cpp.o"
+  "CMakeFiles/calc_app.dir/src/plugin_manager.cpp.o.d"
+  "CMakeFiles/calc_app.dir/src/reference_processor.cpp.o"
+  "CMakeFiles/calc_app.dir/src/reference_processor.cpp.o.d"
+  "CMakeFiles/calc_app.dir/src/serial_communicator.cpp.o"
+  "CMakeFiles/calc_app.dir/src/serial_communicator.cpp.o.d"
+  "CMakeFiles/calc_app.dir/src/spectrum_predictor_manager.cpp.o"
+  "CMakeFiles/calc_app.dir/src/spectrum_predictor_manager.cpp.o.d"
+  "CMakeFiles/calc_app.dir/src/spectrum_processor.cpp.o"
+  "CMakeFiles/calc_app.dir/src/spectrum_processor.cpp.o.d"
+  "CMakeFiles/calc_app.dir/src/udp_communicator.cpp.o"
+  "CMakeFiles/calc_app.dir/src/udp_communicator.cpp.o.d"
+  "CMakeFiles/calc_app.dir/src/udp_receiver.cpp.o"
+  "CMakeFiles/calc_app.dir/src/udp_receiver.cpp.o.d"
+  "calc_app"
+  "calc_app.pdb"
+  "calc_app_autogen/3YJK5W5UP7/qrc_qml.cpp"
+  "calc_app_autogen/mocs_compilation.cpp"
+  "calc_app_autogen/timestamp"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/calc_app.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
