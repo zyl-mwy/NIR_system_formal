@@ -73,19 +73,19 @@ ApplicationWindow {
                 }
             }
             MenuItem {
-                text: "预测值异常监控"
-                onTriggered: {
-                    predictionMonitorWindow.visible = true
-                    predictionMonitorWindow.raise()
-                    predictionMonitorWindow.requestActivate()
-                }
-            }
-            MenuItem {
                 text: "预测结果记录"
                 onTriggered: {
                     predictionRecordWindow.visible = true
                     predictionRecordWindow.raise()
                     predictionRecordWindow.requestActivate()
+                }
+            }
+            MenuItem {
+                text: "光谱异常自检"
+                onTriggered: {
+                    spectrumSnrWindow.visible = true
+                    spectrumSnrWindow.raise()
+                    spectrumSnrWindow.requestActivate()
                 }
             }
         }
@@ -315,6 +315,71 @@ ApplicationWindow {
                     anchors.margins: 12
                     spacing: 8
 
+                    // CPU 温度保护设置（启用 & 温度上限）一行展示，可随窗口宽度自适应
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        CheckBox {
+                            id: cpuTempProtectCheck
+                            checked: cpuTempProtectEnabled
+                            text: "启用 CPU 温度保护"
+                            onToggled: cpuTempProtectEnabled = checked
+                        }
+
+                        Label {
+                            text: "温度上限:"
+                            color: "#555555"
+                            Layout.preferredWidth: 70
+                        }
+
+                        TextField {
+                            id: cpuTempLimitField
+                            text: cpuTempProtectLimit.toString()
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            Layout.preferredWidth: 80
+                            Layout.fillWidth: true
+                            font.pixelSize: 12
+                            padding: 6
+                            background: Rectangle {
+                                color: "#f8f9fa"
+                                border.color: cpuTempLimitField.focus ? "#3498db" : "#dee2e6"
+                                border.width: cpuTempLimitField.focus ? 2 : 1
+                                radius: 4
+                            }
+                            // 一旦开始点击/编辑该输入框，就自动取消勾选并停用温度保护
+                            onActiveFocusChanged: {
+                                if (activeFocus) {
+                                    cpuTempProtectEnabled = false
+                                    cpuTempProtectCheck.checked = false
+                                }
+                            }
+                            onEditingFinished: {
+                                var v = Number(text)
+                                if (!Number.isNaN(v) && v > 0 && v < 120) {
+                                    cpuTempProtectLimit = v
+                                } else {
+                                    text = cpuTempProtectLimit.toString()
+                                }
+                            }
+                        }
+
+                        Label {
+                            text: "℃（建议 70~85）"
+                            color: "#7f8c8d"
+                            font.pixelSize: 11
+                        }
+
+                        // 去掉占位 Item，改由 TextField 自适应宽度
+                    }
+
+                    // 温度保护设置与下方 CPU 占用/温度区域之间的分隔线
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color: "#ecf0f1"
+                    }
+
                     // CPU 使用率和温度
                     RowLayout {
                         Layout.fillWidth: true
@@ -381,51 +446,6 @@ ApplicationWindow {
                                 color: systemMonitor.cpuTemperature < 70 ? "#2ecc71"
                                        : (systemMonitor.cpuTemperature < 85 ? "#f1c40f" : "#e74c3c")
                             }
-                        }
-                    }
-
-                    // CPU 温度保护设置
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        CheckBox {
-                            id: cpuTempProtectCheck
-                            checked: cpuTempProtectEnabled
-                            text: "启用 CPU 温度保护（超限自动停止采集）"
-                            onToggled: cpuTempProtectEnabled = checked
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Label {
-                            text: "温度上限:"
-                            color: "#555555"
-                            Layout.preferredWidth: 100
-                        }
-
-                        TextField {
-                            id: cpuTempLimitField
-                            text: cpuTempProtectLimit.toString()
-                            inputMethodHints: Qt.ImhFormattedNumbersOnly
-                            Layout.preferredWidth: 80
-                            onEditingFinished: {
-                                var v = Number(text)
-                                if (!Number.isNaN(v) && v > 0 && v < 120) {
-                                    cpuTempProtectLimit = v
-                                } else {
-                                    text = cpuTempProtectLimit.toString()
-                                }
-                            }
-                        }
-
-                        Label {
-                            text: "℃ （建议 70~85℃）"
-                            color: "#7f8c8d"
-                            font.pixelSize: 11
                         }
                     }
 
@@ -503,97 +523,7 @@ ApplicationWindow {
         }
     }
 
-    // 预测值异常监控窗口
-    Window {
-        id: predictionMonitorWindow
-        width: 420
-        height: 260
-        minimumWidth: 380
-        minimumHeight: 220
-        title: "预测值异常监控"
-        visible: false
-        color: "#f5f6fa"
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
-
-            Label {
-                text: "设置预测值的异常上下限，超出范围时在主界面以红色提示。"
-                wrapMode: Label.Wrap
-                color: "#555555"
-                font.pixelSize: 12
-                Layout.fillWidth: true
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-
-                CheckBox {
-                    id: monitorEnableCheck
-                    checked: predictionMonitorEnabled
-                    text: "启用异常监控"
-                    onToggled: {
-                        predictionMonitorEnabled = checked
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-
-                Label {
-                    text: "下限:"
-                    color: "#555555"
-                    Layout.preferredWidth: 60
-                }
-                TextField {
-                    id: lowerLimitField
-                    text: predictionLowerLimit.toString()
-                    inputMethodHints: Qt.ImhFormattedNumbersOnly
-                    Layout.fillWidth: true
-                    placeholderText: "例如 0.10"
-                    onEditingFinished: {
-                        var v = Number(text)
-                        if (!Number.isNaN(v)) {
-                            predictionLowerLimit = v
-                        }
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-
-                Label {
-                    text: "上限:"
-                    color: "#555555"
-                    Layout.preferredWidth: 60
-                }
-                TextField {
-                    id: upperLimitField
-                    text: predictionUpperLimit.toString()
-                    inputMethodHints: Qt.ImhFormattedNumbersOnly
-                    Layout.fillWidth: true
-                    placeholderText: "例如 0.30"
-                    onEditingFinished: {
-                        var v = Number(text)
-                        if (!Number.isNaN(v)) {
-                            predictionUpperLimit = v
-                        }
-                    }
-                }
-            }
-
-            Item { Layout.fillHeight: true }
-        }
-    }
-
-    // 预测结果记录窗口
+    // 预测结果记录窗口（包含异常阈值设置）
     Window {
         id: predictionRecordWindow
         width: 720
@@ -609,6 +539,150 @@ ApplicationWindow {
             anchors.margins: 12
             spacing: 8
 
+            // 上半部分：预测值异常监控说明 + 设置
+            // 说明文字和状态标签直接铺在窗口里，只有具体输入区域使用 GroupBox 边框，整体更轻盈
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.margins: 2
+
+                Label {
+                    text: "设置预测值的异常上下限，超出范围时在主界面以红色提示，并记录到日志和预测结果记录中。"
+                    wrapMode: Label.Wrap
+                    color: "#555555"
+                    font.pixelSize: 12
+                    Layout.fillWidth: true
+                }
+            }
+
+            // 上下限设置区域，不再使用带边框的 GroupBox，只保留内容布局
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 6
+                spacing: 8
+
+                // 开关行
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    CheckBox {
+                        id: monitorEnableCheck
+                        checked: predictionMonitorEnabled
+                        text: "启用异常监控"
+                        onToggled: predictionMonitorEnabled = checked
+                    }
+
+                    Label {
+                        text: predictionMonitorEnabled
+                              ? "当前预测结果将按下方设定的上下限进行正常/异常判断。"
+                              : "未启用时，只记录预测值，不进行异常判断。"
+                        color: "#7f8c8d"
+                        font.pixelSize: 11
+                        Layout.fillWidth: true
+                        wrapMode: Label.Wrap
+                    }
+                }
+
+                // 下限 / 上限 一行展示，更紧凑
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 16
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
+
+                        Label {
+                            text: "下限:"
+                            color: "#555555"
+                            Layout.preferredWidth: 40
+                        }
+                        TextField {
+                            id: lowerLimitField
+                            text: predictionLowerLimit.toString()
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            Layout.fillWidth: true
+                            placeholderText: "例如 0.10"
+                            font.pixelSize: 12
+                            padding: 6
+                            background: Rectangle {
+                                color: "#f8f9fa"
+                                border.color: lowerLimitField.focus ? "#3498db" : "#dee2e6"
+                                border.width: lowerLimitField.focus ? 2 : 1
+                                radius: 4
+                            }
+                            // 开始编辑下限时，自动关闭预测异常监控
+                            onActiveFocusChanged: {
+                                if (activeFocus) {
+                                    predictionMonitorEnabled = false
+                                    monitorEnableCheck.checked = false
+                                }
+                            }
+                            onEditingFinished: {
+                                var v = Number(text)
+                                if (!Number.isNaN(v)) {
+                                    predictionLowerLimit = v
+                                } else {
+                                    text = predictionLowerLimit.toString()
+                                }
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
+
+                        Label {
+                            text: "上限:"
+                            color: "#555555"
+                            Layout.preferredWidth: 40
+                        }
+                        TextField {
+                            id: upperLimitField
+                            text: predictionUpperLimit.toString()
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            Layout.fillWidth: true
+                            placeholderText: "例如 0.30"
+                            font.pixelSize: 12
+                            padding: 6
+                            background: Rectangle {
+                                color: "#f8f9fa"
+                                border.color: upperLimitField.focus ? "#3498db" : "#dee2e6"
+                                border.width: upperLimitField.focus ? 2 : 1
+                                radius: 4
+                            }
+                            // 开始编辑上限时，自动关闭预测异常监控
+                            onActiveFocusChanged: {
+                                if (activeFocus) {
+                                    predictionMonitorEnabled = false
+                                    monitorEnableCheck.checked = false
+                                }
+                            }
+                            onEditingFinished: {
+                                var v = Number(text)
+                                if (!Number.isNaN(v)) {
+                                    predictionUpperLimit = v
+                                } else {
+                                    text = predictionUpperLimit.toString()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 当前生效范围的小提示
+                Label {
+                    text: predictionUpperLimit > predictionLowerLimit
+                          ? ("当前生效范围： " + predictionLowerLimit.toFixed(4) + " 〜 " + predictionUpperLimit.toFixed(4))
+                          : "提示：请设置上限 > 下限，使异常监控生效。"
+                    color: predictionUpperLimit > predictionLowerLimit ? "#2c3e50" : "#e67e22"
+                    font.pixelSize: 11
+                    Layout.fillWidth: true
+                }
+            }
+
+            // 下半部分：预测结果记录表
             RowLayout {
                 Layout.fillWidth: true
                 Label {
@@ -641,6 +715,57 @@ ApplicationWindow {
                 }
             }
 
+            // 表头
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Label {
+                    text: "时间"
+                    color: "#7f8c8d"
+                    font.pixelSize: 11
+                    font.bold: true
+                    Layout.fillWidth: true
+                }
+                Label {
+                    text: "预测器"
+                    color: "#7f8c8d"
+                    font.pixelSize: 11
+                    font.bold: true
+                    Layout.preferredWidth: 70
+                }
+                Label {
+                    text: "预测值"
+                    color: "#7f8c8d"
+                    font.pixelSize: 11
+                    font.bold: true
+                    Layout.preferredWidth: 80
+                    horizontalAlignment: Text.AlignRight
+                }
+                Label {
+                    text: "间隔"
+                    color: "#7f8c8d"
+                    font.pixelSize: 11
+                    font.bold: true
+                    Layout.preferredWidth: 80
+                    horizontalAlignment: Text.AlignRight
+                }
+                Label {
+                    text: "上下限"
+                    color: "#7f8c8d"
+                    font.pixelSize: 11
+                    font.bold: true
+                    Layout.preferredWidth: 150
+                }
+                Label {
+                    text: "状态"
+                    color: "#7f8c8d"
+                    font.pixelSize: 11
+                    font.bold: true
+                    Layout.preferredWidth: 70
+                }
+                Item { Layout.preferredWidth: 12 }
+            }
+
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -655,66 +780,69 @@ ApplicationWindow {
                     anchors.margins: 8
                     clip: true
                     model: predictionRecords
-
-                    delegate: RowLayout {
+                    delegate: Rectangle {
                         width: ListView.view.width
-                        spacing: 8
+                        height: 24
+                        color: index % 2 === 0 ? "#ffffff" : "#f8f9fb"
 
-                        Label {
-                            text: modelData.time ? modelData.time.toLocaleString() : ""
-                            color: "#7f8c8d"
-                            font.pixelSize: 11
-                            Layout.fillWidth: true
-                            elide: Text.ElideRight
-                        }
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: 0
+                            spacing: 8
 
-                        Label {
-                            text: "预测器 " + modelData.predictorIndex
-                            color: "#555555"
-                            font.pixelSize: 11
-                            Layout.preferredWidth: 70
-                        }
+                            Label {
+                                text: modelData.time ? modelData.time.toLocaleString() : ""
+                                color: "#7f8c8d"
+                                font.pixelSize: 11
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
 
-                        Label {
-                            text: modelData.value !== undefined ? modelData.value.toFixed(4) : ""
-                            color: "#2c3e50"
-                            font.pixelSize: 11
-                            Layout.preferredWidth: 80
-                            horizontalAlignment: Text.AlignRight
-                        }
+                            Label {
+                                text: "预测器 " + modelData.predictorIndex
+                                color: "#555555"
+                                font.pixelSize: 11
+                                Layout.preferredWidth: 70
+                            }
 
-                        Label {
-                            text: modelData.intervalSec !== undefined && modelData.intervalSec >= 0
-                                  ? (modelData.intervalSec.toFixed(2) + " s")
-                                  : "-"
-                            color: "#7f8c8d"
-                            font.pixelSize: 11
-                            Layout.preferredWidth: 80
-                            horizontalAlignment: Text.AlignRight
-                        }
+                            Label {
+                                text: modelData.value !== undefined ? modelData.value.toFixed(4) : ""
+                                color: "#2c3e50"
+                                font.pixelSize: 11
+                                Layout.preferredWidth: 80
+                                horizontalAlignment: Text.AlignRight
+                            }
 
-                        Label {
-                            text: (modelData.lowerLimit !== undefined && modelData.upperLimit !== undefined
-                                   && predictionMonitorEnabled && predictionUpperLimit > predictionLowerLimit)
-                                  ? (modelData.lowerLimit.toFixed(4) + " ~ " + modelData.upperLimit.toFixed(4))
-                                  : "-"
-                            color: "#7f8c8d"
-                            font.pixelSize: 11
-                            Layout.preferredWidth: 150
-                        }
+                            Label {
+                                text: modelData.intervalSec !== undefined && modelData.intervalSec >= 0
+                                      ? (modelData.intervalSec.toFixed(2) + " s")
+                                      : "-"
+                                color: "#7f8c8d"
+                                font.pixelSize: 11
+                                Layout.preferredWidth: 80
+                                horizontalAlignment: Text.AlignRight
+                            }
 
-                        Label {
-                            text: modelData.status
-                            color: modelData.status === "异常" ? "#e74c3c"
-                                   : (modelData.status === "正常" ? "#27ae60" : "#7f8c8d")
-                            font.pixelSize: 11
-                            font.bold: true
-                            Layout.preferredWidth: 70
-                        }
+                            Label {
+                                text: (modelData.lowerLimit !== undefined && modelData.upperLimit !== undefined
+                                       && predictionMonitorEnabled && predictionUpperLimit > predictionLowerLimit)
+                                      ? (modelData.lowerLimit.toFixed(4) + " ~ " + modelData.upperLimit.toFixed(4))
+                                      : "-"
+                                color: "#7f8c8d"
+                                font.pixelSize: 11
+                                Layout.preferredWidth: 150
+                            }
 
-                        // 末尾留一点空白，避免最后一列文字贴到窗口右边界被裁剪
-                        Item {
-                            Layout.preferredWidth: 12
+                            Label {
+                                text: modelData.status
+                                color: modelData.status === "异常" ? "#e74c3c"
+                                       : (modelData.status === "正常" ? "#27ae60" : "#7f8c8d")
+                                font.pixelSize: 11
+                                font.bold: true
+                                Layout.preferredWidth: 70
+                            }
+
+                            Item { Layout.preferredWidth: 12 }
                         }
                     }
 
@@ -725,6 +853,108 @@ ApplicationWindow {
                     }
                 }
             }
+        }
+    }
+
+    // 光谱异常自检窗口（基于平均光谱信噪比）
+    Window {
+        id: spectrumSnrWindow
+        width: 420
+        height: 260
+        minimumWidth: 380
+        minimumHeight: 220
+        title: "光谱异常自检（信噪比）"
+        visible: false
+        color: "#f5f6fa"
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 8
+
+            Label {
+                text: "根据当前平均光谱的信噪比（SNR）判断光谱质量，低于阈值时在主界面光谱图上给出警告。"
+                wrapMode: Label.Wrap
+                color: "#555555"
+                font.pixelSize: 12
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                CheckBox {
+                    id: spectrumSnrCheck
+                    checked: spectrumSnrMonitorEnabled
+                    text: "启用光谱信噪比自检"
+                    onToggled: spectrumSnrMonitorEnabled = checked
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Label {
+                    text: "SNR 阈值:"
+                    color: "#555555"
+                    Layout.preferredWidth: 80
+                }
+                TextField {
+                    id: spectrumSnrThresholdField
+                    text: spectrumSnrThreshold.toString()
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    Layout.preferredWidth: 80
+                    font.pixelSize: 12
+                    padding: 6
+                    background: Rectangle {
+                        color: "#f8f9fa"
+                        border.color: spectrumSnrThresholdField.focus ? "#3498db" : "#dee2e6"
+                        border.width: spectrumSnrThresholdField.focus ? 2 : 1
+                        radius: 4
+                    }
+                    // 点击/获得焦点时，自动关闭光谱信噪比自检，避免旧阈值继续生效
+                    onActiveFocusChanged: {
+                        if (activeFocus) {
+                            spectrumSnrMonitorEnabled = false
+                            spectrumSnrCheck.checked = false
+                        }
+                    }
+                    onEditingFinished: {
+                        var v = Number(text)
+                        if (!Number.isNaN(v) && v > 0) {
+                            spectrumSnrThreshold = v
+                        } else {
+                            text = spectrumSnrThreshold.toString()
+                        }
+                    }
+                }
+                Label {
+                    text: "(例如 20~50，越大要求越严格)"
+                    color: "#7f8c8d"
+                    font.pixelSize: 11
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Label {
+                    text: "当前 SNR:"
+                    color: "#555555"
+                    Layout.preferredWidth: 80
+                }
+                Label {
+                    text: currentSpectrumSnr.toFixed(2)
+                    color: spectrumSnrWarning ? "#e74c3c" : "#27ae60"
+                    font.pixelSize: 13
+                    font.bold: true
+                }
+            }
+
+            Item { Layout.fillHeight: true }
         }
     }
 
@@ -1634,6 +1864,16 @@ ApplicationWindow {
                                     ctx.fillText("最小值: " + minVal.toFixed(0), plotLeft + 5, plotTop + 15)
                                     ctx.fillText("最大值: " + maxVal.toFixed(0), plotLeft + 5, plotTop + 30)
                                     ctx.fillText("数据包数: " + spectrumPacketCount, plotLeft + 5, plotTop + 45)
+                                    ctx.fillText("SNR: " + currentSpectrumSnr.toFixed(2), plotLeft + 5, plotTop + 60)
+
+                                    // 如果光谱信噪比过低且已启用自检，在图上给出明显警告
+                                    if (spectrumSnrMonitorEnabled && spectrumSnrWarning) {
+                                        ctx.fillStyle = "#e74c3c"
+                                        ctx.font = "bold 13px sans-serif"
+                                        ctx.textAlign = "center"
+                                        ctx.textBaseline = "top"
+                                        ctx.fillText("光谱信噪比过低，请检查光源/探测器/环境！", plotLeft + plotWidth / 2, plotTop + 5)
+                                    }
                                 }
                             }
                         }
@@ -2195,6 +2435,41 @@ ApplicationWindow {
             spectrumMinVal = minVal
             spectrumMaxVal = maxVal
             spectrumPacketCount = packetCount
+
+            // 计算当前平均光谱的简单信噪比：峰峰值 / 标准差
+            if (averagedSpectrum && averagedSpectrum.length > 0) {
+                var n = averagedSpectrum.length
+                var sum = 0
+                for (var i = 0; i < n; ++i) {
+                    sum += averagedSpectrum[i]
+                }
+                var mean = sum / n
+                var varSum = 0
+                for (var j = 0; j < n; ++j) {
+                    var diff = averagedSpectrum[j] - mean
+                    varSum += diff * diff
+                }
+                var std = Math.sqrt(varSum / n)
+                var peakToPeak = maxVal - minVal
+                var snr = std > 0 ? (peakToPeak / std) : 0
+                currentSpectrumSnr = snr
+
+                if (spectrumSnrMonitorEnabled) {
+                    spectrumSnrWarning = (snr < spectrumSnrThreshold)
+                    if (spectrumSnrWarning) {
+                        logUi("光谱自检", "光谱信噪比过低: SNR=" + snr.toFixed(2) + " < 阈值 " + spectrumSnrThreshold.toFixed(2))
+                        if (typeof logManager !== "undefined" && logManager && logManager.logInfo) {
+                            logManager.logInfo("光谱自检",
+                                               "光谱信噪比过低: SNR=" + snr.toFixed(2) + " < 阈值 " + spectrumSnrThreshold.toFixed(2))
+                        }
+                    }
+                } else {
+                    spectrumSnrWarning = false
+                }
+            } else {
+                currentSpectrumSnr = 0
+                spectrumSnrWarning = false
+            }
             // 强制刷新图表
             spectrumCanvas.requestPaint()
             // 同步刷新预测结果曲线
@@ -2414,6 +2689,11 @@ ApplicationWindow {
     property double predictionLowerLimit: 0.0
     property double predictionUpperLimit: 0.0
 
+    // 光谱异常自检（信噪比监控）
+    property bool spectrumSnrMonitorEnabled: false
+    property double spectrumSnrThreshold: 20.0      // 默认信噪比阈值
+    property double currentSpectrumSnr: 0.0         // 最近一次平均光谱的信噪比
+    property bool spectrumSnrWarning: false         // 当前光谱是否低于阈值
     // CPU 温度保护设置（超限时自动停止光谱采集）
     property bool cpuTempProtectEnabled: false
     property double cpuTempProtectLimit: 80.0    // 默认 80 ℃
@@ -2790,6 +3070,13 @@ ApplicationWindow {
                     Layout.preferredWidth: 160
                     Layout.fillWidth: true
                     font.pixelSize: 12
+                    padding: 6
+                    background: Rectangle {
+                        color: "#f8f9fa"
+                        border.color: singleSpectrumLabelInput.focus ? "#3498db" : "#dee2e6"
+                        border.width: singleSpectrumLabelInput.focus ? 2 : 1
+                        radius: 4
+                    }
                 }
 
                 Label {
@@ -2803,6 +3090,13 @@ ApplicationWindow {
                     Layout.preferredWidth: 100
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
                     font.pixelSize: 12
+                    padding: 6
+                    background: Rectangle {
+                        color: "#f8f9fa"
+                        border.color: singleSpectrumMoistureInput.focus ? "#3498db" : "#dee2e6"
+                        border.width: singleSpectrumMoistureInput.focus ? 2 : 1
+                        radius: 4
+                    }
                 }
                 Label {
                     text: "%"
@@ -3076,6 +3370,13 @@ ApplicationWindow {
                                 placeholderText: "(可编辑标签)"
                                 font.pixelSize: 11
                                 Layout.fillWidth: true
+                                padding: 4
+                                background: Rectangle {
+                                    color: "#f8f9fa"
+                                    border.color: recordLabelEditor.focus ? "#3498db" : "#dee2e6"
+                                    border.width: recordLabelEditor.focus ? 2 : 1
+                                    radius: 4
+                                }
                                 onEditingFinished: {
                                     singleSpectrumRecords[index].label = text
                                 }
@@ -3120,6 +3421,13 @@ ApplicationWindow {
                                 font.pixelSize: 11
                                 inputMethodHints: Qt.ImhFormattedNumbersOnly
                                 Layout.fillWidth: true
+                                padding: 4
+                                background: Rectangle {
+                                    color: "#f8f9fa"
+                                    border.color: recordMoistureEditor.focus ? "#3498db" : "#dee2e6"
+                                    border.width: recordMoistureEditor.focus ? 2 : 1
+                                    radius: 4
+                                }
                                 onEditingFinished: {
                                     var v = Number(text)
                                     if (!isNaN(v)) {
