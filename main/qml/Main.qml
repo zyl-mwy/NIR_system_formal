@@ -295,7 +295,7 @@ ApplicationWindow {
             spacing: 10
 
             Label {
-                text: "系统资源实时监控（约 1 秒刷新一次）"
+                text: "系统资源实时监控（约 1 秒刷新一次，可设置 CPU 温度超限自动停止采集）"
                 font.bold: true
                 font.pixelSize: 14
                 color: "#2c3e50"
@@ -381,6 +381,51 @@ ApplicationWindow {
                                 color: systemMonitor.cpuTemperature < 70 ? "#2ecc71"
                                        : (systemMonitor.cpuTemperature < 85 ? "#f1c40f" : "#e74c3c")
                             }
+                        }
+                    }
+
+                    // CPU 温度保护设置
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        CheckBox {
+                            id: cpuTempProtectCheck
+                            checked: cpuTempProtectEnabled
+                            text: "启用 CPU 温度保护（超限自动停止采集）"
+                            onToggled: cpuTempProtectEnabled = checked
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Label {
+                            text: "温度上限:"
+                            color: "#555555"
+                            Layout.preferredWidth: 100
+                        }
+
+                        TextField {
+                            id: cpuTempLimitField
+                            text: cpuTempProtectLimit.toString()
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            Layout.preferredWidth: 80
+                            onEditingFinished: {
+                                var v = Number(text)
+                                if (!Number.isNaN(v) && v > 0 && v < 120) {
+                                    cpuTempProtectLimit = v
+                                } else {
+                                    text = cpuTempProtectLimit.toString()
+                                }
+                            }
+                        }
+
+                        Label {
+                            text: "℃ （建议 70~85℃）"
+                            color: "#7f8c8d"
+                            font.pixelSize: 11
                         }
                     }
 
@@ -2078,6 +2123,44 @@ ApplicationWindow {
         }
     }
 
+    // CPU 温度保护逻辑：超限时自动停止光谱采集
+    Connections {
+        target: systemMonitor
+        function onMetricsUpdated() {
+            if (!cpuTempProtectEnabled) {
+                cpuTempProtectTriggered = false
+                return
+            }
+
+            // 过温触发，带简单迟滞
+            var temp = systemMonitor.cpuTemperature
+            if (!cpuTempProtectTriggered && temp > cpuTempProtectLimit) {
+                cpuTempProtectTriggered = true
+
+                // 停止串口/UDP，与主界面“停止获取光谱”按钮逻辑保持一致
+                if (serialComm.isStarted) {
+                    const port = serialPortInput.text.trim()
+                    if (port.length > 0) {
+                        serialComm.toggleCommand(port)
+                    }
+                }
+                if (udpComm.receiving) {
+                    udpComm.stopReceiving()
+                }
+
+                // 在界面和日志中提示
+                logUi("系统监控", "CPU 温度超限(" + temp.toFixed(1) + "℃ > " + cpuTempProtectLimit.toFixed(1) + "℃)，已自动停止采集")
+                if (typeof logManager !== "undefined" && logManager && logManager.logInfo) {
+                    logManager.logInfo("系统监控",
+                                       "CPU 温度超限(" + temp.toFixed(1) + "℃ > " + cpuTempProtectLimit.toFixed(1) + "℃)，已自动停止采集")
+                }
+            } else if (cpuTempProtectTriggered && temp < cpuTempProtectLimit - 5) {
+                // 温度回落一定幅度后，允许下次再次触发
+                cpuTempProtectTriggered = false
+            }
+        }
+    }
+
     Connections {
         target: udpComm
         function onStatusChanged(message) {
@@ -2331,6 +2414,10 @@ ApplicationWindow {
     property double predictionLowerLimit: 0.0
     property double predictionUpperLimit: 0.0
 
+    // CPU 温度保护设置（超限时自动停止光谱采集）
+    property bool cpuTempProtectEnabled: false
+    property double cpuTempProtectLimit: 80.0    // 默认 80 ℃
+    property bool cpuTempProtectTriggered: false // 避免重复触发
     // 预测结果记录（用于“预测结果记录”窗口展示），每条记录包含：
     // time（Date）、predictorIndex、value、status（"正常"/"异常"/"未启用异常监控"）、lowerLimit、upperLimit、intervalSec（与上一条预测的时间间隔，秒）
     property var predictionRecords: []
