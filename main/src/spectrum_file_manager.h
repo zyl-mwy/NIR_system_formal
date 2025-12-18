@@ -17,7 +17,8 @@ public:
   Q_INVOKABLE QVariantList loadSpectrumFromCsv(const QString &filePath);
 
   // 将当前所有记录（每条包含标签/时间/统计信息/光谱）保存为表格形式 CSV：
-  // 前几列是 index, label, time, length, minVal, maxVal, moisture，后面依次是光谱点 s0, s1, ...
+  // 前几列是 index, label, time, length, minVal, maxVal, moisture，
+  // 后面依次是按波长（nm）标记的光谱点列，例如 1000.0, 1000.6, ..., 1600.0
   Q_INVOKABLE bool saveAllSpectraTableToCsv(const QVariantList &records,
                                             const QString &filePath);
 
