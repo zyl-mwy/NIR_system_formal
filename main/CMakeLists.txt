@@ -41,6 +41,8 @@ add_executable(calc_app
   src/spectrum_predictor_manager.cpp
   src/spectrum_predictor_manager.h
   src/spectrum_predictor_interface.h
+  src/spectrum_file_manager.cpp
+  src/spectrum_file_manager.h
   resources/qml.qrc
 )
 

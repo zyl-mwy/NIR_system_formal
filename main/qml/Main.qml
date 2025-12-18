@@ -1,8 +1,9 @@
 import QtQuick 6.5
 import QtQuick.Controls 6.5
 import QtQuick.Layouts 6.5
+import QtQuick.Dialogs 6.5
 
-Window {
+ApplicationWindow {
     id: root
     width: 1000
     height: 700
@@ -11,6 +12,21 @@ Window {
     visible: true
     title: "近红外水分检测系统"
     color: "#f5f6fa"
+
+    // 顶部菜单栏：提供单次光谱采集入口
+    menuBar: MenuBar {
+        Menu {
+            title: "采集"
+            MenuItem {
+                text: "单次光谱采集与记录"
+                onTriggered: {
+                    singleSpectrumWindow.visible = true
+                    singleSpectrumWindow.raise()
+                    singleSpectrumWindow.requestActivate()
+                }
+            }
+        }
+    }
 
     // 根据内容自动调整窗口大小
     function adjustWindowSize() {
@@ -1446,6 +1462,52 @@ Window {
             spectrumCanvas.requestPaint()
             // 同步刷新预测结果曲线
             predictionCanvas.requestPaint()
+
+            // 如果单次采集窗口处于等待状态，则记录（或跳过）光谱
+            if (singleCaptureWaiting && singleSpectrumWindow.visible) {
+                // 本次“单次采集”已经接收到的光谱条数 +1
+                singleCaptureReceivedCount = singleCaptureReceivedCount + 1
+
+                if (singleCaptureReceivedCount === 1) {
+                    // 第 1 条光谱：按照需求只略过、不记录
+                    singleSpectrumStatusLabel.text = "已接收到第 1 条光谱数据，已略过，正在等待第 2 条用于记录..."
+                    singleSpectrumStatusLabel.color = "#0066cc"
+                } else {
+                    // 第 2 条光谱：真正记录这一条，然后结束本次等待
+                    singleCaptureWaiting = false
+
+                    // 复制一份当前光谱数据，作为这一条记录的独立数据
+                    var spectrumCopy = []
+                    if (averagedSpectrum && averagedSpectrum.length) {
+                        for (var i = 0; i < averagedSpectrum.length; ++i) {
+                            spectrumCopy.push(averagedSpectrum[i])
+                        }
+                    }
+
+                    // 更新矩阵列数（取第一次采集的长度为标准）
+                    if (singleSpectrumLength === 0 && spectrumCopy.length > 0) {
+                        singleSpectrumLength = spectrumCopy.length
+                    }
+
+                    var recordIndex = singleSpectrumRecords.length
+                    singleSpectrumRecords.push({
+                        time: new Date(),
+                        index: recordIndex + 1,
+                        spectrum: spectrumCopy,
+                        length: spectrumCopy.length,
+                        minVal: minVal,
+                        maxVal: maxVal,
+                        label: singleSpectrumLabelInput.text,
+                        moisture: Number(singleSpectrumMoistureInput.text)
+                    })
+
+                    // 显式增加计数，触发界面中所有 model 重新计算
+                    singleSpectrumRecordCount = singleSpectrumRecordCount + 1
+
+                    singleSpectrumStatusLabel.text = "已成功采集到第 " + (recordIndex + 1) + " 条光谱数据（本次采集使用的是第 2 条光谱）"
+                    singleSpectrumStatusLabel.color = "#006600"
+                }
+            }
         }
 
         function onBlackReferenceProgressChanged(progress) {
@@ -1539,6 +1601,21 @@ Window {
     property bool currentModelLoaded: false  // 当前选中预测器的模型加载状态
     property var predictionHistory: []  // 存储预测结果历史（最多10个）
 
+    // 单次光谱采集相关属性
+    property bool singleCaptureWaiting: false          // 是否正在等待一条新的光谱
+    // 每条记录包含: time（时间）、index（第几次）、spectrum（该次完整光谱数据数组）
+    property var singleSpectrumRecords: []
+    // 单次采集的光谱长度（列数），用于构建“索引 + 多条光谱”的矩阵表
+    property int singleSpectrumLength: 0
+    // 已采集的单次光谱条数（专门用于刷新界面）
+    property int singleSpectrumRecordCount: 0
+    // 当前这次“单次采集”已经接收到的光谱条数（用于跳过第一条，记录第二条）
+    property int singleCaptureReceivedCount: 0
+    // 当前要进行 CSV 保存/加载操作的记录索引（-1 表示未选择）
+    property int csvTargetRecordIndex: -1
+    // 从 CSV 导入时暂存的新记录列表，供用户选择覆盖或追加
+    property var pendingImportedRecords: []
+
     Connections {
         target: serialComm
         function onStatusChanged(message) {
@@ -1568,6 +1645,639 @@ Window {
                     modelLoadedLabel.text = "模型未加载"
                     modelLoadedLabel.color = "#cc0000"
                 }
+            }
+        }
+    }
+    
+    // 单次光谱采集与记录窗口（不包含预测功能，只使用已经进行过黑白校正后的光谱）
+    Window {
+        id: singleSpectrumWindow
+        width: 800
+        height: 500
+        minimumWidth: 600
+        minimumHeight: 400
+        title: "单次光谱采集与记录"
+        visible: false
+        modality: Qt.ApplicationModal
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 12
+
+            FileDialog {
+                id: saveCsvDialog
+                title: "选择要保存 CSV 的文件路径"
+                fileMode: FileDialog.SaveFile
+                nameFilters: [ "CSV 文件 (*.csv)", "所有文件 (*)" ]
+                onAccepted: {
+                    if (csvTargetRecordIndex >= 0 &&
+                            csvTargetRecordIndex < singleSpectrumRecords.length) {
+                        const rec = singleSpectrumRecords[csvTargetRecordIndex]
+                        const ok = spectrumFileManager.saveSpectrumToCsv(rec.spectrum, selectedFile)
+                        if (ok) {
+                            singleSpectrumStatusLabel.text = "✓ 已将第 " + (csvTargetRecordIndex + 1) + " 条光谱保存到: " + selectedFile
+                            singleSpectrumStatusLabel.color = "#006600"
+                        } else {
+                            singleSpectrumStatusLabel.text = "✗ 保存 CSV 失败，请检查路径权限"
+                            singleSpectrumStatusLabel.color = "#cc0000"
+                        }
+                    }
+                    csvTargetRecordIndex = -1
+                }
+                onRejected: {
+                    csvTargetRecordIndex = -1
+                }
+            }
+
+            FileDialog {
+                id: loadCsvDialog
+                title: "选择要导入的 CSV 文件"
+                fileMode: FileDialog.OpenFile
+                nameFilters: [ "CSV 文件 (*.csv)", "所有文件 (*)" ]
+                onAccepted: {
+                    if (csvTargetRecordIndex >= 0 &&
+                            csvTargetRecordIndex < singleSpectrumRecords.length) {
+                        const newSpectrum = spectrumFileManager.loadSpectrumFromCsv(selectedFile)
+                        if (!newSpectrum || newSpectrum.length === 0) {
+                            singleSpectrumStatusLabel.text = "✗ 从 CSV 导入光谱失败或文件为空"
+                            singleSpectrumStatusLabel.color = "#cc0000"
+                        } else {
+                            // 用导入的光谱替换当前记录的光谱，并更新统计信息
+                            var minVal = newSpectrum[0]
+                            var maxVal = newSpectrum[0]
+                            for (var i = 1; i < newSpectrum.length; ++i) {
+                                if (newSpectrum[i] < minVal) minVal = newSpectrum[i]
+                                if (newSpectrum[i] > maxVal) maxVal = newSpectrum[i]
+                            }
+                            singleSpectrumRecords[csvTargetRecordIndex].spectrum = newSpectrum
+                            singleSpectrumRecords[csvTargetRecordIndex].length = newSpectrum.length
+                            singleSpectrumRecords[csvTargetRecordIndex].minVal = minVal
+                            singleSpectrumRecords[csvTargetRecordIndex].maxVal = maxVal
+
+                            singleSpectrumStatusLabel.text = "✓ 已从 CSV 导入并更新第 " + (csvTargetRecordIndex + 1) + " 条光谱数据"
+                            singleSpectrumStatusLabel.color = "#006600"
+                        }
+                    }
+                    csvTargetRecordIndex = -1
+                }
+                onRejected: {
+                    csvTargetRecordIndex = -1
+                }
+            }
+
+            FileDialog {
+                id: saveAllCsvDialog
+                title: "选择要保存全部记录的 CSV 表格路径"
+                fileMode: FileDialog.SaveFile
+                nameFilters: [ "CSV 文件 (*.csv)", "所有文件 (*)" ]
+                onAccepted: {
+                    if (singleSpectrumRecordCount <= 0) {
+                        singleSpectrumStatusLabel.text = "✗ 当前没有可导出的记录"
+                        singleSpectrumStatusLabel.color = "#cc0000"
+                        return
+                    }
+                    // FileDialog 返回的是一个 URL，需要转换为本地文件系统路径
+                    var urlStr = saveAllCsvDialog.selectedFile.toString()
+                    var path = urlStr
+                    if (urlStr.startsWith("file://")) {
+                        // 在 Linux 下通常是 file:///home/xxx，去掉前缀得到 /home/xxx
+                        path = urlStr.substring(7)
+                    }
+                    // 如果用户没有手动加 .csv 后缀，则自动补上
+                    if (!path.toLowerCase().endsWith(".csv")) {
+                        path = path + ".csv"
+                    }
+                    const ok = spectrumFileManager.saveAllSpectraTableToCsv(singleSpectrumRecords, path)
+                    if (ok) {
+                        singleSpectrumStatusLabel.text = "✓ 已将全部 " + singleSpectrumRecordCount + " 条记录导出到: " + path
+                        singleSpectrumStatusLabel.color = "#006600"
+                    } else {
+                        singleSpectrumStatusLabel.text = "✗ 导出全部记录到 CSV 失败，请检查路径权限"
+                        singleSpectrumStatusLabel.color = "#cc0000"
+                    }
+                }
+            }
+
+            FileDialog {
+                id: loadAllCsvDialog
+                title: "选择要从中导入全部记录的 CSV 表格"
+                fileMode: FileDialog.OpenFile
+                nameFilters: [ "CSV 文件 (*.csv)", "所有文件 (*)" ]
+                onAccepted: {
+                    // FileDialog 返回的是一个 URL，需要转换为本地文件系统路径
+                    var urlStr = loadAllCsvDialog.selectedFile.toString()
+                    var path = urlStr
+                    if (urlStr.startsWith("file://")) {
+                        path = urlStr.substring(7)
+                    }
+
+                    const recs = spectrumFileManager.loadAllSpectraTableFromCsv(path)
+                    if (!recs || recs.length === 0) {
+                        singleSpectrumStatusLabel.text = "✗ 从 CSV 导入记录失败或无有效数据"
+                        singleSpectrumStatusLabel.color = "#cc0000"
+                        return
+                    }
+
+                    pendingImportedRecords = recs
+                    // 弹出提示对话框，让用户选择覆盖现有记录还是在后面追加
+                    importModeDialog.infoText = "从 CSV 读取到 " + recs.length + " 条记录。\n\n" +
+                                                "是否覆盖当前已有记录？\n" +
+                                                "选择“覆盖导入”将清空现有记录后再导入；\n" +
+                                                "选择“追加导入”则会在现有记录之后追加导入的记录。"
+                    importModeDialog.open()
+                }
+            }
+
+            Dialog {
+                id: importModeDialog
+                title: "导入记录方式选择"
+                modal: true
+                standardButtons: Dialog.NoButton
+                property string infoText: ""
+
+                // 第一步美化：自定义背景为与主界面一致的白色圆角卡片
+                background: Rectangle {
+                    color: "#ffffff"
+                    radius: 10
+                    border.color: "#e0e0e0"
+                    border.width: 1
+                }
+
+                // 第二步美化：自定义遮罩为半透明黑色
+                Overlay.modal: Rectangle {
+                    color: "#000000"
+                    opacity: 0.25
+                }
+
+                contentItem: ColumnLayout {
+                    spacing: 10
+                    anchors.margins: 16
+
+                    Label {
+                        text: "导入记录方式选择"
+                        font.bold: true
+                        font.pixelSize: 14
+                        color: "#2c3e50"
+                        Layout.fillWidth: true
+                    }
+
+                    Label {
+                        text: importModeDialog.infoText
+                        wrapMode: Label.Wrap
+                        color: "#555555"
+                        font.pixelSize: 12
+                        Layout.fillWidth: true
+                    }
+
+                    RowLayout {
+                        Layout.alignment: Qt.AlignRight
+                        spacing: 8
+
+                        Button {
+                            text: "覆盖导入"
+                            background: Rectangle {
+                                color: parent.pressed ? "#c0392b" : (parent.hovered ? "#e74c3c" : "#e74c3c")
+                                radius: 6
+                                border.color: "#c0392b"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: "#ffffff"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            onClicked: {
+                                if (!pendingImportedRecords || pendingImportedRecords.length === 0) {
+                                    importModeDialog.close()
+                                    return
+                                }
+                                var recs = pendingImportedRecords
+                                // 覆盖模式
+                                singleSpectrumRecords = recs
+                                singleSpectrumRecordCount = recs.length
+
+                                if (singleSpectrumRecords.length > 0 &&
+                                        singleSpectrumRecords[0].length !== undefined) {
+                                    singleSpectrumLength = singleSpectrumRecords[0].length
+                                }
+
+                                pendingImportedRecords = []
+                                singleSpectrumStatusLabel.text = "✓ 已从 CSV 覆盖导入 " + recs.length + " 条记录"
+                                singleSpectrumStatusLabel.color = "#006600"
+                                importModeDialog.close()
+                            }
+                        }
+
+                        Button {
+                            text: "追加导入"
+                            background: Rectangle {
+                                color: parent.pressed ? "#16a085" : (parent.hovered ? "#1abc9c" : "#1abc9c")
+                                radius: 6
+                                border.color: "#16a085"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: "#ffffff"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            onClicked: {
+                                if (!pendingImportedRecords || pendingImportedRecords.length === 0) {
+                                    importModeDialog.close()
+                                    return
+                                }
+                                var recs = pendingImportedRecords
+                                // 追加模式
+                                for (var i = 0; i < recs.length; ++i) {
+                                    singleSpectrumRecords.push(recs[i])
+                                }
+                                singleSpectrumRecordCount = singleSpectrumRecordCount + recs.length
+
+                                if (singleSpectrumRecords.length > 0 &&
+                                        singleSpectrumRecords[0].length !== undefined) {
+                                    singleSpectrumLength = singleSpectrumRecords[0].length
+                                }
+
+                                pendingImportedRecords = []
+                                singleSpectrumStatusLabel.text = "✓ 已从 CSV 追加导入 " + recs.length + " 条记录"
+                                singleSpectrumStatusLabel.color = "#006600"
+                                importModeDialog.close()
+                            }
+                        }
+
+                        Button {
+                            text: "取消"
+                            background: Rectangle {
+                                color: parent.pressed ? "#95a5a6" : (parent.hovered ? "#bdc3c7" : "#ecf0f1")
+                                radius: 6
+                                border.color: "#bdc3c7"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: "#2c3e50"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            onClicked: {
+                                pendingImportedRecords = []
+                                importModeDialog.close()
+                            }
+                        }
+                    }
+                }
+            }
+
+            Label {
+                text: "功能说明：本窗口仅用于采集单条光谱并记录，不进行预测运算。\n请先在主界面完成黑/白参考采集，并确保已经开始获取光谱数据。"
+                wrapMode: Label.Wrap
+                color: "#555555"
+                Layout.fillWidth: true
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: "#e0e0e0"
+            }
+
+            // 光谱标签与对应水分输入
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Label {
+                    text: "光谱标签:"
+                    color: "#555555"
+                    Layout.preferredWidth: 60
+                }
+                TextField {
+                    id: singleSpectrumLabelInput
+                    placeholderText: "例如: 样品1 / 玉米A"
+                    Layout.preferredWidth: 160
+                    Layout.fillWidth: true
+                    font.pixelSize: 12
+                }
+
+                Label {
+                    text: "水分含量:"
+                    color: "#555555"
+                    Layout.preferredWidth: 70
+                }
+                TextField {
+                    id: singleSpectrumMoistureInput
+                    placeholderText: "例如: 12.34"
+                    Layout.preferredWidth: 100
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    font.pixelSize: 12
+                }
+                Label {
+                    text: "%"
+                    color: "#555555"
+                    Layout.preferredWidth: 12
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Button {
+                    text: singleCaptureWaiting ? "正在等待数据..." : "采集一条新的光谱"
+                    enabled: !singleCaptureWaiting
+                    Layout.preferredWidth: 180
+                    Layout.fillWidth: true
+                    background: Rectangle {
+                        color: parent.pressed ? "#27ae60" : (parent.hovered ? "#2ecc71" : "#27ae60")
+                        radius: 6
+                        border.color: "#229954"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#ffffff"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+
+                    onClicked: {
+                        if (!udpComm.receiving && !serialComm.isStarted) {
+                            singleSpectrumStatusLabel.text = "✗ 请先在主界面启动“开始获取光谱”（串口/UDP）"
+                            singleSpectrumStatusLabel.color = "#cc0000"
+                            return
+                        }
+
+                        // 启动一次新的“单次采集”：本次将跳过收到的第1条光谱，只记录第2条
+                        singleCaptureWaiting = true
+                        singleCaptureReceivedCount = 0
+                        singleSpectrumStatusLabel.text = "正在等待第 1 条光谱数据（将被略过），随后记录第 2 条..."
+                        singleSpectrumStatusLabel.color = "#0066cc"
+                    }
+                }
+
+                Button {
+                    text: "关闭"
+                    Layout.preferredWidth: 80
+                    background: Rectangle {
+                        color: parent.pressed ? "#95a5a6" : (parent.hovered ? "#bdc3c7" : "#ecf0f1")
+                        radius: 6
+                        border.color: "#bdc3c7"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    onClicked: {
+                        singleCaptureWaiting = false
+                        singleSpectrumWindow.close()
+                    }
+                }
+            }
+
+            Label {
+                id: singleSpectrumStatusLabel
+                text: "尚未采集单次光谱。"
+                color: "#666666"
+                font.pixelSize: 12
+                Layout.fillWidth: true
+                wrapMode: Label.Wrap
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: "#e0e0e0"
+            }
+
+            Label {
+                text: "已记录的单次光谱（时间与序号列表）："
+                font.bold: true
+                color: "#34495e"
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Button {
+                    text: "导出全部到 CSV（表格）"
+                    Layout.preferredWidth: 200
+                    background: Rectangle {
+                        color: parent.pressed ? "#2980b9" : (parent.hovered ? "#3498db" : "#3498db")
+                        radius: 6
+                        border.color: "#2980b9"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#ffffff"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    enabled: singleSpectrumRecordCount > 0
+                    onClicked: {
+                        if (singleSpectrumRecordCount <= 0) {
+                            singleSpectrumStatusLabel.text = "当前没有可导出的记录"
+                            singleSpectrumStatusLabel.color = "#cc0000"
+                            return
+                        }
+                        saveAllCsvDialog.open()
+                    }
+                }
+
+                Button {
+                    text: "从 CSV 导入全部记录"
+                    Layout.preferredWidth: 200
+                    background: Rectangle {
+                        color: parent.pressed ? "#16a085" : (parent.hovered ? "#1abc9c" : "#1abc9c")
+                        radius: 6
+                        border.color: "#16a085"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#ffffff"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    onClicked: {
+                        loadAllCsvDialog.open()
+                    }
+                }
+
+                Button {
+                    text: "清空全部记录"
+                    Layout.preferredWidth: 120
+                    background: Rectangle {
+                        color: parent.pressed ? "#7f8c8d" : (parent.hovered ? "#95a5a6" : "#bdc3c7")
+                        radius: 6
+                        border.color: "#7f8c8d"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    enabled: singleSpectrumRecordCount > 0
+                    onClicked: {
+                        singleSpectrumRecords = []
+                        singleSpectrumRecordCount = 0
+                        singleSpectrumStatusLabel.text = "已清空全部单次采集记录"
+                        singleSpectrumStatusLabel.color = "#666666"
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            ListView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                // 使用单独的计数属性触发 model 更新
+                model: singleSpectrumRecordCount
+
+                delegate: Rectangle {
+                    width: ListView.view.width
+                    height: 32
+                    color: index % 2 === 0 ? "#ffffff" : "#f8f9fa"
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 8
+                        anchors.rightMargin: 8
+
+                        Label {
+                            text: "记录 " + (index + 1)
+                            color: "#2c3e50"
+                            font.bold: true
+                        }
+                        RowLayout {
+                            spacing: 4
+                            Layout.preferredWidth: 170
+
+                            Label {
+                                text: "标签:"
+                                color: "#555555"
+                            }
+                            TextField {
+                                id: recordLabelEditor
+                                text: singleSpectrumRecords[index].label
+                                placeholderText: "(可编辑标签)"
+                                font.pixelSize: 11
+                                Layout.fillWidth: true
+                                onEditingFinished: {
+                                    singleSpectrumRecords[index].label = text
+                                }
+                            }
+                        }
+                        Label {
+                            // 采集时间
+                            text: Qt.formatDateTime(singleSpectrumRecords[index].time,
+                                                     "yyyy-MM-dd hh:mm:ss")
+                            color: "#555555"
+                            Layout.preferredWidth: 130
+                        }
+                        Label {
+                            text: "长度: " + singleSpectrumRecords[index].length
+                            color: "#555555"
+                            Layout.preferredWidth: 90
+                        }
+                        Label {
+                            text: "最小值: " + Number(singleSpectrumRecords[index].minVal).toFixed(2)
+                            color: "#555555"
+                            Layout.preferredWidth: 110
+                        }
+                        Label {
+                            text: "最大值: " + Number(singleSpectrumRecords[index].maxVal).toFixed(2)
+                            color: "#555555"
+                            Layout.preferredWidth: 110
+                        }
+                        RowLayout {
+                            spacing: 4
+                            Layout.preferredWidth: 140
+
+                            Label {
+                                text: "水分:"
+                                color: "#555555"
+                            }
+                            TextField {
+                                id: recordMoistureEditor
+                                text: isNaN(singleSpectrumRecords[index].moisture)
+                                      ? ""
+                                      : Number(singleSpectrumRecords[index].moisture).toFixed(2)
+                                placeholderText: "12.34"
+                                font.pixelSize: 11
+                                inputMethodHints: Qt.ImhFormattedNumbersOnly
+                                Layout.fillWidth: true
+                                onEditingFinished: {
+                                    var v = Number(text)
+                                    if (!isNaN(v)) {
+                                        singleSpectrumRecords[index].moisture = v
+                                    }
+                                }
+                            }
+                            Label {
+                                text: "%"
+                                color: "#555555"
+                            }
+                        }
+                        Button {
+                            text: "删除"
+                            Layout.preferredWidth: 60
+                            background: Rectangle {
+                                color: parent.pressed ? "#c0392b" : (parent.hovered ? "#e74c3c" : "#e74c3c")
+                                radius: 6
+                                border.color: "#c0392b"
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: parent.text
+                                color: "#ffffff"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 11
+                                font.bold: true
+                            }
+                            onClicked: {
+                                if (singleSpectrumRecordCount <= 0) return
+                                // 删除当前这一条记录
+                                singleSpectrumRecords.splice(index, 1)
+                                singleSpectrumRecordCount = singleSpectrumRecordCount - 1
+                                singleSpectrumStatusLabel.text = "已删除第 " + (index + 1) + " 条记录"
+                                singleSpectrumStatusLabel.color = "#666666"
+                            }
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
+                }
+
+                ScrollBar.vertical: ScrollBar { }
             }
         }
     }

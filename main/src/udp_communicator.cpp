@@ -6,6 +6,7 @@
 
 #include <QVariant>
 #include <QTimer>
+#include <QDebug>
 
 UdpCommunicator::UdpCommunicator(QObject *parent)
     : QObject(parent), udpReceiver_(nullptr), spectrumProcessor_(nullptr),
@@ -180,6 +181,10 @@ void UdpCommunicator::onUdpErrorOccurred(const QString &error) {
 
 void UdpCommunicator::onSpectrumProcessed(const QVariantList &averagedSpectrum, 
                                           double minVal, double maxVal, int packetCount) {
+  // 在后端打印本次光谱的点数，便于确认长度（例如是否为 1024）
+  qDebug() << "[UdpCommunicator] Single spectrum length:" << averagedSpectrum.size()
+           << ", min:" << minVal << ", max:" << maxVal << ", packetCount:" << packetCount;
+
   // 数据已经在后台线程中处理完成（包括平均值计算和黑白校正），直接转发到QML
   emit spectrumReady(averagedSpectrum, minVal, maxVal, packetCount);
 }
