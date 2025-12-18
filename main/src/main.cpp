@@ -7,6 +7,7 @@
 #include "serial_communicator.h"
 #include "udp_communicator.h"
 #include "spectrum_predictor_manager.h"
+#include "spectrum_file_manager.h"
 
 int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
@@ -15,6 +16,7 @@ int main(int argc, char *argv[]) {
   SerialCommunicator serialComm;
   UdpCommunicator udpComm;
   SpectrumPredictorManager predictorManager;
+  SpectrumFileManager spectrumFileManager;
   
   // 将预测器管理器设置到 UDP 通信器中
   udpComm.setPredictorManager(&predictorManager);
@@ -40,6 +42,7 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("serialComm", &serialComm);
   engine.rootContext()->setContextProperty("udpComm", &udpComm);
   engine.rootContext()->setContextProperty("predictorManager", &predictorManager);
+  engine.rootContext()->setContextProperty("spectrumFileManager", &spectrumFileManager);
 
   const QUrl url(QStringLiteral("qrc:/Main.qml"));
   QObject::connect(
