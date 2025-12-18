@@ -2395,8 +2395,34 @@ ApplicationWindow {
                                        "CPU 温度超限(" + temp.toFixed(1) + "℃ > " + cpuTempProtectLimit.toFixed(1) + "℃)，已自动停止采集")
                 }
             } else if (cpuTempProtectTriggered && temp < cpuTempProtectLimit - 5) {
-                // 温度回落一定幅度后，允许下次再次触发
+                // 温度回落一定幅度后，自动恢复为“未触发”状态
                 cpuTempProtectTriggered = false
+
+                // 在保护仍然启用的前提下，如果当前没有在采集，则自动重新启动采集
+                if (cpuTempProtectEnabled && !serialComm.isStarted && !udpComm.receiving) {
+                    // 启动串口（与主界面“开始获取光谱”按钮逻辑一致）
+                    const port = serialPortInput.text.trim()
+                    if (port.length > 0) {
+                        serialComm.toggleCommand(port)
+                    } else {
+                        serialStatusLabel.text = "✗ 请输入串口名称"
+                    }
+
+                    // 启动 UDP
+                    const udpPort = parseInt(udpPortInput.text)
+                    if (!isNaN(udpPort) && udpPort > 0 && udpPort < 65536) {
+                        udpComm.startReceiving(udpBindAddressInput.text.trim(), udpPort)
+                    } else {
+                        udpStatusLabel.text = "✗ 请输入有效的 UDP 端口号"
+                    }
+
+                    // 在日志中记录自动恢复采集
+                    logUi("系统监控", "CPU 温度已恢复正常(" + temp.toFixed(1) + "℃ < " + cpuTempProtectLimit.toFixed(1) + "℃)，已自动重新开始获取光谱")
+                    if (typeof logManager !== "undefined" && logManager && logManager.logInfo) {
+                        logManager.logInfo("系统监控",
+                                           "CPU 温度已恢复正常(" + temp.toFixed(1) + "℃ < " + cpuTempProtectLimit.toFixed(1) + "℃)，已自动重新开始获取光谱")
+                    }
+                }
             }
         }
     }
