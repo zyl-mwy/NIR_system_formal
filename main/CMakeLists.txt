@@ -25,6 +25,8 @@ add_subdirectory(plugins)
 
 add_executable(calc_app
   src/main.cpp
+  src/log_manager.cpp
+  src/system_monitor.cpp
   src/plugin_manager.cpp
   src/plugin_manager.h
   src/plugin_interface.h

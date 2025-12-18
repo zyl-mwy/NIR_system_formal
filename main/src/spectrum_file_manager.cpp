@@ -117,10 +117,18 @@ bool SpectrumFileManager::saveAllSpectraTableToCsv(const QVariantList &records,
   out.setRealNumberNotation(QTextStream::FixedNotation);
   out.setRealNumberPrecision(10);
 
-  // 表头：索引 / 标签 / 时间 / 长度 / 最小值 / 最大值 / 水分 / s0 ... sN
+  // 表头：索引 / 标签 / 时间 / 长度 / 最小值 / 最大值 / 水分 / λ0 ... λN （波长，单位 nm）
+  // 假定光谱为等间隔采样，波长范围为 1000~1600 nm
+  const double lambdaStart = 1000.0;
+  const double lambdaEnd = 1600.0;
   out << "index,label,time,length,minVal,maxVal,moisture";
-  for (int i = 0; i < maxLen; ++i) {
-    out << ",s" << i;
+  if (maxLen > 0) {
+    const double step = (maxLen > 1) ? (lambdaEnd - lambdaStart) / (maxLen - 1) : 0.0;
+    for (int i = 0; i < maxLen; ++i) {
+      const double lambda = lambdaStart + step * i;
+      // 只保留两位小数即可用于标识波长点
+      out << "," << QString::number(lambda, 'f', 2);
+    }
   }
   out << "\n";
 

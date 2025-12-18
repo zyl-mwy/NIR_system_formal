@@ -8,6 +8,8 @@
 #include "udp_communicator.h"
 #include "spectrum_predictor_manager.h"
 #include "spectrum_file_manager.h"
+#include "log_manager.h"
+#include "system_monitor.h"
 
 int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
@@ -17,6 +19,11 @@ int main(int argc, char *argv[]) {
   UdpCommunicator udpComm;
   SpectrumPredictorManager predictorManager;
   SpectrumFileManager spectrumFileManager;
+  LogManager logManager;
+  SystemMonitor systemMonitor;
+
+  // 安装全局日志处理，捕获 qDebug / console.log 等输出
+  LogManager::installGlobalHandler();
   
   // 将预测器管理器设置到 UDP 通信器中
   udpComm.setPredictorManager(&predictorManager);
@@ -43,6 +50,8 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty("udpComm", &udpComm);
   engine.rootContext()->setContextProperty("predictorManager", &predictorManager);
   engine.rootContext()->setContextProperty("spectrumFileManager", &spectrumFileManager);
+  engine.rootContext()->setContextProperty("logManager", &logManager);
+  engine.rootContext()->setContextProperty("systemMonitor", &systemMonitor);
 
   const QUrl url(QStringLiteral("qrc:/Main.qml"));
   QObject::connect(

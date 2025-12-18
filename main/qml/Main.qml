@@ -13,8 +13,36 @@ ApplicationWindow {
     title: "近红外水分检测系统"
     color: "#f5f6fa"
 
-    // 顶部菜单栏：提供单次光谱采集入口
+    // 顶部菜单栏：提供单次光谱采集、日志查看等入口（带简洁美化）
     menuBar: MenuBar {
+        id: mainMenuBar
+
+        background: Rectangle {
+            color: "#ffffff"
+            border.color: "#dcdde1"
+            height: 32
+        }
+
+        delegate: MenuBarItem {
+            id: menuItem
+            implicitHeight: 28
+            implicitWidth: Math.max(80, contentItem.implicitWidth + 24)
+
+            contentItem: Text {
+                text: menuItem.text
+                font.pixelSize: 12
+                font.bold: menuItem.highlighted
+                color: menuItem.highlighted ? "#2980b9" : "#34495e"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                color: menuItem.highlighted ? "#ecf6fd"
+                      : (menuItem.down ? "#d0e4f7" : "transparent")
+            }
+        }
+
         Menu {
             title: "采集"
             MenuItem {
@@ -23,6 +51,41 @@ ApplicationWindow {
                     singleSpectrumWindow.visible = true
                     singleSpectrumWindow.raise()
                     singleSpectrumWindow.requestActivate()
+                }
+            }
+        }
+        Menu {
+            title: "工具"
+            MenuItem {
+                text: "查看日志"
+                onTriggered: {
+                    logWindow.visible = true
+                    logWindow.raise()
+                    logWindow.requestActivate()
+                }
+            }
+            MenuItem {
+                text: "系统监控"
+                onTriggered: {
+                    systemMonitorWindow.visible = true
+                    systemMonitorWindow.raise()
+                    systemMonitorWindow.requestActivate()
+                }
+            }
+            MenuItem {
+                text: "预测值异常监控"
+                onTriggered: {
+                    predictionMonitorWindow.visible = true
+                    predictionMonitorWindow.raise()
+                    predictionMonitorWindow.requestActivate()
+                }
+            }
+            MenuItem {
+                text: "预测结果记录"
+                onTriggered: {
+                    predictionRecordWindow.visible = true
+                    predictionRecordWindow.raise()
+                    predictionRecordWindow.requestActivate()
                 }
             }
         }
@@ -40,6 +103,13 @@ ApplicationWindow {
             if (Math.abs(root.height - targetHeight) > 10) {  // 增加阈值，避免频繁调整
                 root.height = targetHeight
             }
+        }
+    }
+
+    // 统一的界面操作日志函数
+    function logUi(source, message) {
+        if (typeof logManager !== "undefined" && logManager && logManager.logInfo) {
+            logManager.logInfo(source, message)
         }
     }
 
@@ -82,6 +152,535 @@ ApplicationWindow {
         }
         // 允许窗口关闭
         close.accepted = true
+    }
+
+    // 日志查看窗口
+    Window {
+        id: logWindow
+        width: 900
+        height: 600
+        minimumWidth: 700
+        minimumHeight: 400
+        title: "日志查看"
+        visible: false
+        color: "#f5f6fa"
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 8
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                Label {
+                    text: "应用运行日志（最新在下方）"
+                    font.bold: true
+                    font.pixelSize: 14
+                    color: "#2c3e50"
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    text: "清空"
+                    Layout.preferredWidth: 72
+                    background: Rectangle {
+                        color: parent.pressed ? "#c0392b" : (parent.hovered ? "#e74c3c" : "#e74c3c")
+                        radius: 6
+                        border.color: "#c0392b"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#ffffff"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    onClicked: logManager.clear()
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: 6
+                color: "#ffffff"
+                border.color: "#dcdde1"
+                border.width: 1
+
+                ListView {
+                    id: logListView
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    clip: true
+                    model: logManager.entries
+
+                    delegate: ColumnLayout {
+                        width: ListView.view.width
+                        spacing: 4
+
+                        RowLayout {
+                            width: parent.width
+                            spacing: 8
+
+                            Label {
+                                text: modelData.timestamp
+                                color: "#7f8c8d"
+                                font.pixelSize: 11
+                                Layout.preferredWidth: 160
+                            }
+
+                            Rectangle {
+                                radius: 4
+                                color: modelData.level === "ERROR" || modelData.level === "FATAL"
+                                       ? "#e74c3c"
+                                       : (modelData.level === "WARN" ? "#f39c12"
+                                                                     : (modelData.level === "INFO" ? "#3498db" : "#95a5a6"))
+                                Layout.preferredWidth: 52
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: modelData.level
+                                    color: "#ffffff"
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                }
+                            }
+
+                            Label {
+                                text: modelData.message
+                                color: "#2c3e50"
+                                font.pixelSize: 11
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+                        }
+
+                        // 每条日志下方的分隔线
+                        Rectangle {
+                            width: parent.width
+                            height: 1
+                            color: "#ecf0f1"
+                        }
+                    }
+
+                    // 自动滚动到底部，方便查看最新日志
+                    onCountChanged: {
+                        if (count > 0) {
+                            positionViewAtEnd()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 系统监控窗口
+    Window {
+        id: systemMonitorWindow
+        width: 500
+        height: 320
+        minimumWidth: 420
+        minimumHeight: 260
+        title: "系统监控"
+        visible: false
+        color: "#f5f6fa"
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 10
+
+            Label {
+                text: "系统资源实时监控（约 1 秒刷新一次）"
+                font.bold: true
+                font.pixelSize: 14
+                color: "#2c3e50"
+                Layout.fillWidth: true
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: 6
+                color: "#ffffff"
+                border.color: "#dcdde1"
+                border.width: 1
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 8
+
+                    // CPU 使用率和温度
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Label {
+                            text: "CPU 占用:"
+                            color: "#555555"
+                            Layout.preferredWidth: 100
+                        }
+                        Label {
+                            text: systemMonitor.cpuUsage.toFixed(1) + " %"
+                            color: "#2c3e50"
+                            font.pixelSize: 13
+                            Layout.preferredWidth: 150
+                            horizontalAlignment: Text.AlignRight
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 10
+                            radius: 5
+                            color: "#ecf0f1"
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                height: parent.height
+                                width: Math.max(2, parent.width * systemMonitor.cpuUsage / 100.0)
+                                radius: 5
+                                color: systemMonitor.cpuUsage < 60 ? "#2ecc71"
+                                       : (systemMonitor.cpuUsage < 85 ? "#f1c40f" : "#e74c3c")
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Label {
+                            text: "CPU 温度:"
+                            color: "#555555"
+                            Layout.preferredWidth: 100
+                        }
+                        Label {
+                            text: systemMonitor.cpuTemperature.toFixed(1) + " ℃"
+                            color: "#2c3e50"
+                            font.pixelSize: 13
+                            Layout.preferredWidth: 150
+                            horizontalAlignment: Text.AlignRight
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 10
+                            radius: 5
+                            color: "#ecf0f1"
+
+                            // 0~100 ℃ 区间映射为进度条宽度，超出范围则截断
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                height: parent.height
+                                width: {
+                                    var t = Math.min(100, Math.max(0, systemMonitor.cpuTemperature))
+                                    return parent.width * t / 100.0
+                                }
+                                radius: 5
+                                color: systemMonitor.cpuTemperature < 70 ? "#2ecc71"
+                                       : (systemMonitor.cpuTemperature < 85 ? "#f1c40f" : "#e74c3c")
+                            }
+                        }
+                    }
+
+                    // 内存
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Label {
+                            text: "内存占用:"
+                            color: "#555555"
+                            Layout.preferredWidth: 100
+                        }
+                        Label {
+                            text: systemMonitor.memoryUsage.toFixed(1) + " / " + systemMonitor.memoryTotal.toFixed(1) + " MB"
+                            color: "#2c3e50"
+                            font.pixelSize: 13
+                            Layout.preferredWidth: 150
+                            horizontalAlignment: Text.AlignRight
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 10
+                            radius: 5
+                            color: "#ecf0f1"
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                height: parent.height
+                                width: systemMonitor.memoryTotal > 0
+                                       ? Math.max(2, parent.width * (systemMonitor.memoryUsage / systemMonitor.memoryTotal))
+                                       : 0
+                                radius: 5
+                                color: "#3498db"
+                            }
+                        }
+                    }
+
+                    // 磁盘
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Label {
+                            text: "磁盘占用:"
+                            color: "#555555"
+                            Layout.preferredWidth: 100
+                        }
+                        Label {
+                            text: systemMonitor.diskUsage.toFixed(2) + " / " + systemMonitor.diskTotal.toFixed(2) + " GB"
+                            color: "#2c3e50"
+                            font.pixelSize: 13
+                            Layout.preferredWidth: 150
+                            horizontalAlignment: Text.AlignRight
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 10
+                            radius: 5
+                            color: "#ecf0f1"
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                height: parent.height
+                                width: systemMonitor.diskTotal > 0
+                                       ? Math.max(2, parent.width * (systemMonitor.diskUsage / systemMonitor.diskTotal))
+                                       : 0
+                                radius: 5
+                                color: "#9b59b6"
+                            }
+                        }
+                    }
+
+                    Item { Layout.fillHeight: true }
+                }
+            }
+        }
+    }
+
+    // 预测值异常监控窗口
+    Window {
+        id: predictionMonitorWindow
+        width: 420
+        height: 260
+        minimumWidth: 380
+        minimumHeight: 220
+        title: "预测值异常监控"
+        visible: false
+        color: "#f5f6fa"
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 10
+
+            Label {
+                text: "设置预测值的异常上下限，超出范围时在主界面以红色提示。"
+                wrapMode: Label.Wrap
+                color: "#555555"
+                font.pixelSize: 12
+                Layout.fillWidth: true
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                CheckBox {
+                    id: monitorEnableCheck
+                    checked: predictionMonitorEnabled
+                    text: "启用异常监控"
+                    onToggled: {
+                        predictionMonitorEnabled = checked
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Label {
+                    text: "下限:"
+                    color: "#555555"
+                    Layout.preferredWidth: 60
+                }
+                TextField {
+                    id: lowerLimitField
+                    text: predictionLowerLimit.toString()
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    Layout.fillWidth: true
+                    placeholderText: "例如 0.10"
+                    onEditingFinished: {
+                        var v = Number(text)
+                        if (!Number.isNaN(v)) {
+                            predictionLowerLimit = v
+                        }
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Label {
+                    text: "上限:"
+                    color: "#555555"
+                    Layout.preferredWidth: 60
+                }
+                TextField {
+                    id: upperLimitField
+                    text: predictionUpperLimit.toString()
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    Layout.fillWidth: true
+                    placeholderText: "例如 0.30"
+                    onEditingFinished: {
+                        var v = Number(text)
+                        if (!Number.isNaN(v)) {
+                            predictionUpperLimit = v
+                        }
+                    }
+                }
+            }
+
+            Item { Layout.fillHeight: true }
+        }
+    }
+
+    // 预测结果记录窗口
+    Window {
+        id: predictionRecordWindow
+        width: 720
+        height: 420
+        minimumWidth: 640
+        minimumHeight: 360
+        title: "预测结果记录"
+        visible: false
+        color: "#f5f6fa"
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 8
+
+            RowLayout {
+                Layout.fillWidth: true
+                Label {
+                    text: "最近预测结果记录（包含正常/异常状态与上下限设置）"
+                    font.bold: true
+                    font.pixelSize: 14
+                    color: "#2c3e50"
+                    Layout.fillWidth: true
+                }
+                Button {
+                    text: "清空记录"
+                    Layout.preferredWidth: 80
+                    onClicked: {
+                        predictionRecords = []
+                    }
+                    background: Rectangle {
+                        color: parent.pressed ? "#95a5a6" : (parent.hovered ? "#bdc3c7" : "#ecf0f1")
+                        radius: 6
+                        border.color: "#bdc3c7"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#2c3e50"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: 6
+                color: "#ffffff"
+                border.color: "#dcdde1"
+                border.width: 1
+
+                ListView {
+                    id: predictionRecordList
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    clip: true
+                    model: predictionRecords
+
+                    delegate: RowLayout {
+                        width: ListView.view.width
+                        spacing: 8
+
+                        Label {
+                            text: modelData.time ? modelData.time.toLocaleString() : ""
+                            color: "#7f8c8d"
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+
+                        Label {
+                            text: "预测器 " + modelData.predictorIndex
+                            color: "#555555"
+                            font.pixelSize: 11
+                            Layout.preferredWidth: 70
+                        }
+
+                        Label {
+                            text: modelData.value !== undefined ? modelData.value.toFixed(4) : ""
+                            color: "#2c3e50"
+                            font.pixelSize: 11
+                            Layout.preferredWidth: 80
+                            horizontalAlignment: Text.AlignRight
+                        }
+
+                        Label {
+                            text: modelData.intervalSec !== undefined && modelData.intervalSec >= 0
+                                  ? (modelData.intervalSec.toFixed(2) + " s")
+                                  : "-"
+                            color: "#7f8c8d"
+                            font.pixelSize: 11
+                            Layout.preferredWidth: 80
+                            horizontalAlignment: Text.AlignRight
+                        }
+
+                        Label {
+                            text: (modelData.lowerLimit !== undefined && modelData.upperLimit !== undefined
+                                   && predictionMonitorEnabled && predictionUpperLimit > predictionLowerLimit)
+                                  ? (modelData.lowerLimit.toFixed(4) + " ~ " + modelData.upperLimit.toFixed(4))
+                                  : "-"
+                            color: "#7f8c8d"
+                            font.pixelSize: 11
+                            Layout.preferredWidth: 150
+                        }
+
+                        Label {
+                            text: modelData.status
+                            color: modelData.status === "异常" ? "#e74c3c"
+                                   : (modelData.status === "正常" ? "#27ae60" : "#7f8c8d")
+                            font.pixelSize: 11
+                            font.bold: true
+                            Layout.preferredWidth: 70
+                        }
+
+                        // 末尾留一点空白，避免最后一列文字贴到窗口右边界被裁剪
+                        Item {
+                            Layout.preferredWidth: 12
+                        }
+                    }
+
+                    onCountChanged: {
+                        if (count > 0) {
+                            positionViewAtEnd()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     ScrollView {
@@ -248,6 +847,8 @@ ApplicationWindow {
                                 font.bold: true
                             }
                             onClicked: {
+                                // 记录按钮点击
+                                logUi("主界面", (serialComm.isStarted || udpComm.receiving) ? "点击 停止获取光谱 按钮" : "点击 开始获取光谱 按钮")
                                 if (serialComm.isStarted || udpComm.receiving) {
                                     // 停止所有通信
                                     if (serialComm.isStarted) {
@@ -906,19 +1507,21 @@ ApplicationWindow {
                                     ctx.textAlign = "center"
                                     ctx.textBaseline = "top"
                                     
+                                    // 将 X 轴从“数据点索引”改为“波长 (nm)”，假设 1000~1600nm 线性均分为 dataPoints 个点
                                     for (var tx = 0; tx <= gridCountX; tx++) {
                                         var tickX = plotLeft + (plotWidth * tx / gridCountX)
-                                        var xValue = (dataPoints - 1) * tx / gridCountX
-                                        
+                                        var lambda = spectrumWavelengthStart +
+                                                     (spectrumWavelengthEnd - spectrumWavelengthStart) * tx / gridCountX
+
                                         // 绘制刻度线
                                         ctx.beginPath()
                                         ctx.moveTo(tickX, plotBottom)
                                         ctx.lineTo(tickX, plotBottom + 5)
                                         ctx.stroke()
-                                        
+
                                         // 绘制刻度值（确保在 Canvas 范围内）
                                         if (tickX >= 0 && tickX <= width) {
-                                            ctx.fillText(xValue.toFixed(0), tickX, plotBottom + 8)
+                                            ctx.fillText(lambda.toFixed(0), tickX, plotBottom + 8)
                                         }
                                     }
                                     
@@ -948,8 +1551,8 @@ ApplicationWindow {
                                     ctx.font = "bold 12px sans-serif"
                                     ctx.textAlign = "center"
                                     ctx.textBaseline = "top"
-                                    // X 轴标签
-                                    ctx.fillText("数据点索引", plotLeft + plotWidth / 2, plotBottom + 25)
+                                    // X 轴标签：波长 (nm)
+                                    ctx.fillText("波长 (nm)", plotLeft + plotWidth / 2, plotBottom + 25)
                                     
                                     // Y 轴标签（旋转90度，放在最左侧避免遮挡刻度）
                                     ctx.save()
@@ -1180,6 +1783,54 @@ ApplicationWindow {
                                         }
                                     }
                                     ctx.stroke()
+
+                                    // 绘制预测值正常范围的上下限线（如果已启用监控且范围有效）
+                                    if (predictionMonitorEnabled && predictionUpperLimit > predictionLowerLimit) {
+                                        ctx.save()
+                                        ctx.setLineDash([6, 4])
+
+                                        // 上限线
+                                        var upperNorm = (predictionUpperLimit - minVal) / range
+                                        // 将超出范围的值钳制在 [0, 1]，保证始终能在图内看到参考线
+                                        upperNorm = Math.max(0, Math.min(1, upperNorm))
+                                        var upperY = plotBottom - upperNorm * plotHeight
+                                        ctx.strokeStyle = "#27ae60"
+                                        ctx.lineWidth = 1.2
+                                        ctx.beginPath()
+                                        ctx.moveTo(plotLeft, upperY)
+                                        ctx.lineTo(plotRight, upperY)
+                                        ctx.stroke()
+
+                                        // 下限线
+                                        var lowerNorm = (predictionLowerLimit - minVal) / range
+                                        lowerNorm = Math.max(0, Math.min(1, lowerNorm))
+                                        var lowerY = plotBottom - lowerNorm * plotHeight
+                                        ctx.strokeStyle = "#e74c3c"
+                                        ctx.beginPath()
+                                        ctx.moveTo(plotLeft, lowerY)
+                                        ctx.lineTo(plotRight, lowerY)
+                                        ctx.stroke()
+
+                                        ctx.setLineDash([])
+
+                                        // 标注上下限文字
+                                        ctx.fillStyle = "#27ae60"
+                                        ctx.font = "10px sans-serif"
+                                        ctx.textAlign = "right"
+                                        ctx.textBaseline = "bottom"
+                                        if (upperY >= plotTop && upperY <= plotBottom) {
+                                            ctx.fillText("上限 " + predictionUpperLimit.toFixed(4),
+                                                         plotRight - 2, upperY - 2)
+                                        }
+                                        ctx.fillStyle = "#e74c3c"
+                                        ctx.textBaseline = "top"
+                                        if (lowerY >= plotTop && lowerY <= plotBottom) {
+                                            ctx.fillText("下限 " + predictionLowerLimit.toFixed(4),
+                                                         plotRight - 2, lowerY + 2)
+                                        }
+
+                                        ctx.restore()
+                                    }
 
                                     // 绘制数据点
                                     ctx.fillStyle = "#cc6600"
@@ -1438,6 +2089,9 @@ ApplicationWindow {
             } else {
                 udpStatusLabel.color = "#666666"
             }
+
+            // 同步记录一条通信状态日志
+            logManager.logInfo("UDP", message)
         }
 
         function onPacketReceived(data) {
@@ -1539,9 +2193,76 @@ ApplicationWindow {
         function onPredictionReady(predictorIndex, predictionValue) {
             // 接收到预测结果
             if (currentPredictorIndex === predictorIndex) {
-                predictionResultLabel.text = "预测值: " + predictionValue.toFixed(4)
-                predictionResultLabel.color = "#006600"
+                var valText = predictionValue.toFixed(4)
+                predictionResultLabel.text = "预测值: " + valText
+
+                // 根据异常监控阈值决定颜色
+                var statusText = ""
+                if (predictionMonitorEnabled &&
+                        predictionUpperLimit > predictionLowerLimit) {
+                    if (predictionValue < predictionLowerLimit || predictionValue > predictionUpperLimit) {
+                        predictionResultLabel.color = "#e74c3c"   // 异常：红色
+                        statusText = "异常"
+                    } else {
+                        predictionResultLabel.color = "#006600"   // 正常：绿色
+                        statusText = "正常"
+                    }
+                } else {
+                    predictionResultLabel.color = "#006600"
+                    statusText = "未启用异常监控"
+                }
+
                 console.log("预测结果 [预测器", predictorIndex, "]:", predictionValue)
+
+                // 将预测结果及其正常/异常状态写入日志
+                if (typeof logManager !== "undefined" && logManager && logManager.logInfo) {
+                    var msg = "预测值=" + valText
+                    if (predictionMonitorEnabled && predictionUpperLimit > predictionLowerLimit) {
+                        msg += " (范围 " + predictionLowerLimit + " ~ " + predictionUpperLimit + ")，状态=" + statusText
+                    } else {
+                        msg += "，状态=" + statusText
+                    }
+                    logManager.logInfo("预测结果", msg)
+                }
+
+                // 同步写入 log/result.csv
+                if (typeof logManager !== "undefined" && logManager && logManager.logPredictionResult) {
+                    var monitorEnabled = predictionMonitorEnabled && predictionUpperLimit > predictionLowerLimit
+                    logManager.logPredictionResult(predictorIndex,
+                                                   predictionValue,
+                                                   statusText,
+                                                   monitorEnabled,
+                                                   predictionLowerLimit,
+                                                   predictionUpperLimit,
+                                                   spectrumData ? spectrumData : [])
+                }
+
+                // 将预测结果记录到本地列表，用于“预测结果记录”窗口展示
+                var now = new Date()
+                var intervalSec = -1
+                if (predictionRecords && predictionRecords.length > 0 && predictionRecords[predictionRecords.length - 1].time) {
+                    var lastTime = predictionRecords[predictionRecords.length - 1].time
+                    var dtMs = now.getTime() - lastTime.getTime()
+                    intervalSec = dtMs / 1000.0
+                }
+
+                var rec = {
+                    time: now,
+                    predictorIndex: predictorIndex,
+                    value: predictionValue,
+                    status: statusText,
+                    lowerLimit: predictionMonitorEnabled && predictionUpperLimit > predictionLowerLimit ? predictionLowerLimit : null,
+                    upperLimit: predictionMonitorEnabled && predictionUpperLimit > predictionLowerLimit ? predictionUpperLimit : null,
+                    intervalSec: intervalSec
+                }
+                // 创建一个新的数组以触发 QML 绑定更新
+                var newList = predictionRecords.slice()
+                newList.push(rec)
+                // 只保留最近 200 条，防止无限增长
+                if (newList.length > 200) {
+                    newList.shift()
+                }
+                predictionRecords = newList
                 
                 // 更新预测结果历史（最多保存10个）
                 if (!predictionHistory) {
@@ -1601,6 +2322,19 @@ ApplicationWindow {
     property bool currentModelLoaded: false  // 当前选中预测器的模型加载状态
     property var predictionHistory: []  // 存储预测结果历史（最多10个）
 
+    // 光谱波长范围（例如 1000~1600nm, 共1024个点）
+    property real spectrumWavelengthStart: 1000.0
+    property real spectrumWavelengthEnd: 1600.0
+
+    // 预测值异常监控阈值设置
+    property bool predictionMonitorEnabled: false
+    property double predictionLowerLimit: 0.0
+    property double predictionUpperLimit: 0.0
+
+    // 预测结果记录（用于“预测结果记录”窗口展示），每条记录包含：
+    // time（Date）、predictorIndex、value、status（"正常"/"异常"/"未启用异常监控"）、lowerLimit、upperLimit、intervalSec（与上一条预测的时间间隔，秒）
+    property var predictionRecords: []
+
     // 单次光谱采集相关属性
     property bool singleCaptureWaiting: false          // 是否正在等待一条新的光谱
     // 每条记录包含: time（时间）、index（第几次）、spectrum（该次完整光谱数据数组）
@@ -1627,6 +2361,9 @@ ApplicationWindow {
             } else {
                 serialStatusLabel.color = "#666666"
             }
+
+            // 同步记录一条通信状态日志
+            logManager.logInfo("串口", message)
         }
     }
 
@@ -1938,7 +2675,7 @@ ApplicationWindow {
             }
 
             Label {
-                text: "功能说明：本窗口仅用于采集单条光谱并记录，不进行预测运算。\n请先在主界面完成黑/白参考采集，并确保已经开始获取光谱数据。"
+                text: "功能说明：本窗口仅用于采集单条光谱并记录，不进行预测运算。\n请先完成黑/白参考采集，并确保已经开始获取光谱数据。"
                 wrapMode: Label.Wrap
                 color: "#555555"
                 Layout.fillWidth: true
@@ -1994,7 +2731,7 @@ ApplicationWindow {
                 Button {
                     text: singleCaptureWaiting ? "正在等待数据..." : "采集一条新的光谱"
                     enabled: !singleCaptureWaiting
-                    Layout.preferredWidth: 180
+                    // 自适应宽度，由布局按比例分配
                     Layout.fillWidth: true
                     background: Rectangle {
                         color: parent.pressed ? "#27ae60" : (parent.hovered ? "#2ecc71" : "#27ae60")
@@ -2013,8 +2750,9 @@ ApplicationWindow {
 
                     onClicked: {
                         if (!udpComm.receiving && !serialComm.isStarted) {
-                            singleSpectrumStatusLabel.text = "✗ 请先在主界面启动“开始获取光谱”（串口/UDP）"
+                            singleSpectrumStatusLabel.text = "✗ 请先启动“开始获取光谱”（串口/UDP）"
                             singleSpectrumStatusLabel.color = "#cc0000"
+                            logUi("单次采集", singleSpectrumStatusLabel.text)
                             return
                         }
 
@@ -2023,11 +2761,68 @@ ApplicationWindow {
                         singleCaptureReceivedCount = 0
                         singleSpectrumStatusLabel.text = "正在等待第 1 条光谱数据（将被略过），随后记录第 2 条..."
                         singleSpectrumStatusLabel.color = "#0066cc"
+                        logUi("单次采集", "开始单次采集：等待第 1 条光谱，记录第 2 条")
+                    }
+                }
+
+                // 与主界面“开始获取光谱”按钮功能一致的快捷按钮，方便在单次采集窗口中直接控制采集
+                Button {
+                    text: (serialComm.isStarted || udpComm.receiving) ? "停止获取光谱" : "开始获取光谱"
+                    // 自适应宽度，由布局按比例分配
+                    Layout.fillWidth: true
+                    background: Rectangle {
+                        color: parent.pressed ? "#2980b9" : (parent.hovered ? "#3498db" : "#3498db")
+                        radius: 6
+                        border.color: "#2980b9"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#ffffff"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    onClicked: {
+                        logUi("单次采集", (serialComm.isStarted || udpComm.receiving) ? "点击 停止获取光谱(单次窗口) 按钮"
+                                                                                     : "点击 开始获取光谱(单次窗口) 按钮")
+                        if (serialComm.isStarted || udpComm.receiving) {
+                            // 停止所有通信（与主界面按钮逻辑保持一致）
+                            if (serialComm.isStarted) {
+                                const port = serialPortInput.text.trim()
+                                if (port.length > 0) {
+                                    serialComm.toggleCommand(port)
+                                }
+                            }
+                            if (udpComm.receiving) {
+                                udpComm.stopReceiving()
+                            }
+                        } else {
+                            // 启动所有通信（与主界面按钮逻辑保持一致）
+                            // 启动串口
+                            const port = serialPortInput.text.trim()
+                            if (port.length > 0) {
+                                serialComm.toggleCommand(port)
+                            } else {
+                                serialStatusLabel.text = "✗ 请输入串口名称"
+                            }
+
+                            // 启动UDP
+                            const udpPort = parseInt(udpPortInput.text)
+                            if (isNaN(udpPort) || udpPort < 1 || udpPort > 65535) {
+                                udpStatusLabel.text = "✗ 请输入有效的端口号(1-65535)"
+                            } else {
+                                const bindAddr = udpBindAddressInput.text.trim()
+                                udpComm.startReceiving(udpPort, bindAddr)
+                            }
+                        }
                     }
                 }
 
                 Button {
                     text: "关闭"
+                    // 关闭按钮保持相对固定宽度
                     Layout.preferredWidth: 80
                     background: Rectangle {
                         color: parent.pressed ? "#95a5a6" : (parent.hovered ? "#bdc3c7" : "#ecf0f1")
@@ -2078,7 +2873,7 @@ ApplicationWindow {
 
                 Button {
                     text: "导出全部到 CSV（表格）"
-                    Layout.preferredWidth: 200
+                    Layout.fillWidth: true
                     background: Rectangle {
                         color: parent.pressed ? "#2980b9" : (parent.hovered ? "#3498db" : "#3498db")
                         radius: 6
@@ -2106,7 +2901,7 @@ ApplicationWindow {
 
                 Button {
                     text: "从 CSV 导入全部记录"
-                    Layout.preferredWidth: 200
+                    Layout.fillWidth: true
                     background: Rectangle {
                         color: parent.pressed ? "#16a085" : (parent.hovered ? "#1abc9c" : "#1abc9c")
                         radius: 6
@@ -2128,7 +2923,7 @@ ApplicationWindow {
 
                 Button {
                     text: "清空全部记录"
-                    Layout.preferredWidth: 120
+                    Layout.fillWidth: true
                     background: Rectangle {
                         color: parent.pressed ? "#7f8c8d" : (parent.hovered ? "#95a5a6" : "#bdc3c7")
                         radius: 6
@@ -2165,12 +2960,15 @@ ApplicationWindow {
                 delegate: Rectangle {
                     width: ListView.view.width
                     height: 32
+                    radius: 4
                     color: index % 2 === 0 ? "#ffffff" : "#f8f9fa"
+                    border.color: "#e0e0e0"
+                    border.width: 1
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 8
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 10
 
                         Label {
                             text: "记录 " + (index + 1)
