@@ -187,3 +187,5 @@ nvcc -V
 11. ubuntu 磁盘莫名其妙满了
     * sudo apt install baobab
     * baobab
+12. 想要知道python某个包的具体安装位置
+    * pip show xxx
