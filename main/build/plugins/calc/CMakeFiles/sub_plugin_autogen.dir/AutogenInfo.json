@@ -1,0 +1,133 @@
+{
+	"BUILD_DIR" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/sub_plugin_autogen",
+	"CMAKE_BINARY_DIR" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/plugins/calc",
+	"CMAKE_EXECUTABLE" : "/usr/bin/cmake",
+	"CMAKE_LIST_FILES" : 
+	[
+		"/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/plugins/calc/CMakeLists.txt",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/Qt6ConfigVersion.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/Qt6ConfigVersionImpl.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/Qt6Config.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicCMakeEarlyPolicyHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicCMakeHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/Qt6ConfigExtras.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicCMakeVersionHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtInstallPaths.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/Qt6Targets.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/Qt6VersionlessAliasTargets.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtFeature.cmake",
+		"/usr/share/cmake-3.28/Modules/CheckCXXCompilerFlag.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtFeatureCommon.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicAndroidHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicAppleHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicCMakeHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicCMakeVersionHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicExternalProjectHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicFinalizerHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicFindPackageHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicGitHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicPluginHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicPluginHelpers_v2.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomAttributionHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomCpeHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomDepHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomFileHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomGenerationHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomLicenseHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomOpsHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomPurlHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomPythonHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomQtEntityHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicSbomSystemDepHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicTargetHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicTestHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicToolHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicWalkLibsHelpers.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/QtPublicWindowsHelpers.cmake",
+		"/usr/share/cmake-3.28/Modules/CMakeFindDependencyMacro.cmake",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/lib/cmake/Qt6/Qt6Dependencies.cmake"
+	],
+	"CMAKE_SOURCE_DIR" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main",
+	"DEP_FILE" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/sub_plugin_autogen/deps",
+	"DEP_FILE_RULE_NAME" : "sub_plugin_autogen/timestamp",
+	"HEADERS" : [],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/sub_plugin_autogen/include",
+	"MOC_COMPILATION_FILE" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/sub_plugin_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : [ "QT_CORE_LIB", "QT_NO_DEBUG", "sub_plugin_EXPORTS" ],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/src",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/include/QtCore",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/include",
+		"/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/mkspecs/linux-g++",
+		"/usr/include/c++/13",
+		"/usr/include/aarch64-linux-gnu/c++/13",
+		"/usr/include/c++/13/backward",
+		"/usr/lib/gcc/aarch64-linux-gnu/13/include",
+		"/usr/local/include",
+		"/usr/include/aarch64-linux-gnu",
+		"/usr/include"
+	],
+	"MOC_MACRO_NAMES" : 
+	[
+		"Q_OBJECT",
+		"Q_GADGET",
+		"Q_NAMESPACE",
+		"Q_NAMESPACE_EXPORT",
+		"Q_GADGET_EXPORT",
+		"Q_ENUM_NS"
+	],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-std=c++17",
+		"-dM",
+		"-E",
+		"-c",
+		"/usr/share/cmake-3.28/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/sub_plugin_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : 
+	[
+		"/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/add_plugin_autogen/mocs_compilation.cpp"
+	],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 1,
+	"PARSE_CACHE_FILE" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/CMakeFiles/sub_plugin_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/home/linxi-ice-2/Qt/6.10.1/gcc_arm64/libexec/moc",
+	"QT_UIC_EXECUTABLE" : "",
+	"QT_VERSION_MAJOR" : 6,
+	"QT_VERSION_MINOR" : 10,
+	"SETTINGS_FILE" : "/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/CMakeFiles/sub_plugin_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/plugins/calc/sub_plugin.cpp",
+			"MU",
+			null
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : 
+	[
+		"/media/linxi-ice-2/CCCOMA_X64FRE_ZH-CN_DV9/test1/c_system_formal/NIR_system_formal/main/build/plugins/calc/add_plugin_autogen/mocs_compilation.cpp"
+	],
+	"UIC_UI_FILES" : [],
+	"VERBOSITY" : 0
+}
