@@ -184,3 +184,6 @@ nvcc -V
    * sudo apt install g++
 10. 如何查看自己新插入的串口设备的名字
     * sudo dmesg | grep tty
+11. ubuntu 磁盘莫名其妙满了
+    * sudo apt install baobab
+    * baobab
