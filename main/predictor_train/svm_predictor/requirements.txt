@@ -1,7 +1,0 @@
-numpy>=1.21.0
-scikit-learn>=1.0.0
-matplotlib>=3.5.0
-skl2onnx>=1.11.0
-onnx>=1.12.0
-onnxruntime>=1.12.0
-
