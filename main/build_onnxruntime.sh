@@ -19,6 +19,11 @@ cd ~
 git clone --recursive https://github.com/Microsoft/onnxruntime
 cd onnxruntime
 
+# problem
+echo "==========================================="
+echo "How to solve the problem about anaconda when building onnxruntime with ./build.sh"
+echo "Disable the anaconda environment by editing the \"~./bashrc\" and removing code about ananconda path. And then reboot your Ubuntu System."
+
 # Compire from source code
 echo "==========================================="
 echo "Download onnxruntime souece code"
@@ -26,6 +31,7 @@ echo "Download onnxruntime souece code"
 
 echo "After compilation, the library files will be generated in the onnxruntime/build/Linux/Release/ directory. In the CMakeLists.txt, set ONNXRUNTIME_ROOT_PATH to this path."
 
-echo "How to solve the problem about anaconda when building onnxruntime with ./build.sh"
+echo "The lib/ is the onnxruntime/build/Linux/Release/, please copy and rename it"
+echo "The include/ is the onnxruntime/include/onnxruntime/core/session/, please copy and rename it"
 
-echo "Disable the anaconda environment by editing the \"~./bashrc\" and removing code about ananconda path. And then reboot your Ubuntu System."
+
