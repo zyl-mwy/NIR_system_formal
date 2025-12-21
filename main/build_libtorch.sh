@@ -79,3 +79,4 @@ if [ -d "$INSTALL_DIR/lib" ]; then
     ls -lh "$INSTALL_DIR/lib" | head -20
 fi
 
+echo "The $PYTORCH_ROOT/build_libtorch is the libtorch, please copy and rename it by yourself"
