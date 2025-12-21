@@ -189,3 +189,7 @@ nvcc -V
     * baobab
 12. 想要知道python某个包的具体安装位置
     * pip show xxx
+
+## 使用这个系统的完整流程
+1. 给你的树莓派装上 ubuntu24.04 系统
+   1. 在你的电脑上（最好是ubuntu，windows也可以），安装好Raspberry Pi Imager
