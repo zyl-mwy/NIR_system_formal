@@ -8,6 +8,7 @@
 
 * git clone https://github.com/zyl-mwy/NIR_system_formal.git
 * git init
+* git pull
 
 * git add .
 
