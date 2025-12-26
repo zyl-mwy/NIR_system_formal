@@ -49,12 +49,12 @@ $$
 并代入 $\beta=\Phi-\alpha$，可得
 
 $$
-\sin\alpha+\sin(\Phi-\alpha)=2\sin\!\left(\frac{\Phi}{2}\right)\cos\!\left(\alpha-\frac{\Phi}{2}\right).
+\sin\alpha+\sin(\Phi-\alpha)=2\sin\left(\frac{\Phi}{2}\right)\cos\left(\alpha-\frac{\Phi}{2}\right).
 $$
 
 因此，入射角 $\alpha$ 的闭式解为
 
-$$\alpha=\frac{\Phi}{2}\pm\arccos\!\left(\frac{m\,\lambda\,G}{2\sin(\Phi/2)}\right),$$
+$$\alpha=\frac{\Phi}{2}\pm\arccos\left(\frac{m\,\lambda\,G}{2\sin(\Phi/2)}\right),$$
 
 并需满足可解条件
 
