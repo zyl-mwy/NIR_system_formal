@@ -41,17 +41,22 @@ From [bilibili](https://www.bilibili.com/video/BV1dTUmYWEwC?-Arouter=story&buvid
 给定光栅刻线密度 $G$、衍射级次 $m$、工作波长 $\lambda$，
 以及入射与衍射臂的夹角 $\Phi=\alpha+\beta$，
 由光栅方程
+
 $$
 m\lambda G=\sin\alpha+\sin\beta
 $$
+
 并代入 $\beta=\Phi-\alpha$，可得
+
 $$
 \sin\alpha+\sin(\Phi-\alpha)
 =
 2\sin\!\left(\frac{\Phi}{2}\right)
 \cos\!\left(\alpha-\frac{\Phi}{2}\right).
 $$
+
 因此，入射角 $\alpha$ 的闭式解为
+
 $$
 \alpha
 =
