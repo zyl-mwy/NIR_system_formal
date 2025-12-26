@@ -34,7 +34,7 @@ From [bilibili](https://www.bilibili.com/video/BV1dTUmYWEwC?-Arouter=story&buvid
 |$L_F$ 、 $L_C$ 与 $G$ 强相关|
 |1200刻光栅，闪耀波长为500nm只有17.4闪耀角|
 |一般买光栅的话，闪耀波长、光栅刻度 $G$ 、闪耀角度 $\theta$ 都是固定那几组，所以 $\Phi$ 一般要根据这些固定的稍微反向调整下|
-| 一般先选 $\Phi=30\degree$，然后计算出 $\alpha$ 和 $\beta$，随后得出 $\theta$，之后根据相近的闪耀波长规格以及闪耀角，看看哪个光栅刻度合适，并反推 $\Phi$，不断调整，直到 $\Phi$ 、$\alpha$ 以及 $\beta$ 不变化 |
+| 一般先选 $\Phi=30\degree$，然后计算出 $\alpha$ 和 $\beta$，随后得出 $\theta$，之后根据相近的闪耀波长规格以及闪耀角，看看哪个光栅刻度合适，并反推 $\Phi$，不断调整，直到 $\Phi 、\alpha$ 以及 $\beta$ 不变化 |
 | $M$ 一般选 1| 
 
 
