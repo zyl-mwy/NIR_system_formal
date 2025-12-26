@@ -57,6 +57,7 @@ $$
 $$\alpha=\frac{\Phi}{2}\pm\arccos\!\left(\frac{m\,\lambda\,G}{2\sin(\Phi/2)}\right),$$
 
 并需满足可解条件
+
 $$
 \frac{m\,\lambda\,G}{2\sin(\Phi/2)} \le 1.
 $$
