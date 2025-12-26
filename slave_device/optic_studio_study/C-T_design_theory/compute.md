@@ -54,10 +54,10 @@ $$
 
 因此，入射角 $\alpha$ 的闭式解为
 
-$$\alpha=\frac{\Phi}{2}\pm\arccos\left(\frac{m\,\lambda\,G}{2\sin(\Phi/2)}\right),$$
+$$\alpha=\frac{\Phi}{2}\pm\arccos\left(\frac{m\lambda G}{2\sin(\Phi/2)}\right),$$
 
 并需满足可解条件
 
 $$
-\frac{m\,\lambda\,G}{2\sin(\Phi/2)} \le 1.
+\frac{m\lambda G}{2\sin(\Phi/2)} \le 1.
 $$
