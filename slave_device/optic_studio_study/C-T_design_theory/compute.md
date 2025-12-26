@@ -19,7 +19,7 @@ From [bilibili](https://www.bilibili.com/video/BV1dTUmYWEwC?-Arouter=story&buvid
 | Magnification | $M$ | 自设 &#x26a0;&#xfe0f; |
 | Grating groove density | $G$ | 自设 &#x26a0;&#xfe0f; |
 | Focal length collimation | $L_C=L_F\frac{cos(\alpha)}{M cos(\beta)}$ | 复杂计算 &#x1f4d6; |
-| Focal length focus | $L_F=\frac{L_D cos(\beta)}{G(\lambda_2-\lambda_1)}$，$L_F=\frac{L_D cos(\beta)}{mG(\lambda_2-\lambda_1)}$ | 复杂计算 &#x1f4d6; |
+| Focal length focus | $L_F=\frac{L_D cos(\beta)}{G(\lambda_2-\lambda_1)}, L_F=\frac{L_D cos(\beta)}{mG(\lambda_2-\lambda_1)}$ | 复杂计算 &#x1f4d6; |
 | Detector width | $L_D$ | 自设 &#x26a0;&#xfe0f; |
 | Input silt width | $\omega_{silt}=\frac{G\Delta\lambda L_C}{cos(\alpha)}$，$\omega_{silt}=\frac{mG\Delta\lambda L_C}{cos(\alpha)}$ | 复杂计算 &#x1f4d6; |
 |  |  |  |
