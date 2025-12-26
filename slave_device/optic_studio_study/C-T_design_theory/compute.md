@@ -21,7 +21,7 @@ From [bilibili](https://www.bilibili.com/video/BV1dTUmYWEwC?-Arouter=story&buvid
 | Focal length collimation | $L_C=L_F\frac{cos(\alpha)}{M cos(\beta)}$ | 复杂计算 &#x1f4d6; |
 | Focal length focus | $L_F=\frac{L_D cos(\beta)}{G(\lambda_2-\lambda_1)}, L_F=\frac{L_D cos(\beta)}{mG(\lambda_2-\lambda_1)}$ | 复杂计算 &#x1f4d6; |
 | Detector width | $L_D$ | 自设 &#x26a0;&#xfe0f; |
-| Input silt width | $\omega_{silt}=\frac{G\Delta\lambda L_C}{cos(\alpha)}$，$\omega_{silt}=\frac{mG\Delta\lambda L_C}{cos(\alpha)}$ | 复杂计算 &#x1f4d6; |
+| Input silt width | $\omega_{silt}=\frac{G\Delta\lambda L_C}{cos(\alpha)}，\omega_{silt}=\frac{mG\Delta\lambda L_C}{cos(\alpha)}$ | 复杂计算 &#x1f4d6; |
 |  |  |  |
 | 闪耀角 | $\theta=\frac{\beta-\alpha}{2}=\frac{\Phi}{2}-\alpha,\beta\gt\alpha$ | 复杂计算 &#x1f4d6; |
 | 闪耀波长 | $\lambda_1+\frac{\lambda_2-\lambda_1}{4}$ |  已知 &#x2705; |
