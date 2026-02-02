@@ -311,7 +311,7 @@ def compute_detailed_position_of_B(point, width, height, angle, distance, distan
     point_down = [point[0], point[1] - distance]
     point_left_up = [point[0] - width/2, point[1] + height - distance]
     point_left_down = [point[0] - width/2, point[1] - distance]
-    point_right_up = [point[0] + width/2, point[1] - distance + distance_2]
+    point_right_up = [point[0] + width/2, point[1] + distance - distance_2]
     point_right_down = [point[0] + width/2, point[1] - distance]
     return point, point_up, point_down, point_left_up, point_left_down, point_right_up, point_right_down
 
@@ -324,13 +324,13 @@ def compute_detailed_position_of_C(point, width, height, angle, distance, distan
     point_right_down = [point[0] - width/2, point[1] + distance]
     return point, point_up, point_down, point_left_up, point_left_down, point_right_up, point_right_down
 
-def compute_detailed_position_of_D(point, width, height, angle, distance, thick, distance_2):
-    point_up = [point[0] - height + distance + thick + distance_2, point[1]]
-    point_down = [point[0] + distance + thick + distance_2, point[1]]
-    point_left_up = [point[0] - height + distance + thick + distance_2, point[1] - width/2]
-    point_left_down = [point[0] + distance + thick + distance_2, point[1] - width/2]
-    point_right_up = [point[0] - height + distance + thick + distance_2, point[1] + width/2]
-    point_right_down = [point[0] + distance + thick + distance_2, point[1] + width/2]
+def compute_detailed_position_of_D(point, width, height, angle, distance, thick):
+    point_up = [point[0] - height + distance + thick/2, point[1]]
+    point_down = [point[0] + distance + thick/2, point[1]]
+    point_left_up = [point[0] - height + distance + thick/2, point[1] - width/2]
+    point_left_down = [point[0] + distance + thick/2, point[1] - width/2]
+    point_right_up = [point[0] - height + distance + thick/2, point[1] + width/2]
+    point_right_down = [point[0] + distance + thick/2, point[1] + width/2]
     return point, point_up, point_down, point_left_up, point_left_down, point_right_up, point_right_down
 
 def compute_detailed_position_of_E(point, width, height, angle, distance):
@@ -367,25 +367,25 @@ def compute_detailed_position_of_H(point, width, angle):
     # print(height, distance, height - distance)
     return point, point_left, point_right
 
-def compute_position(lde_obj, parallel_length=24.8):
-    # point_start = [0, 0]
-    # point_parabolic_1 = [point_start[0]-abs(lde_obj[2, 3]), point_start[1]]
-    # point_parabolic_2 = [point_parabolic_1[0], point_parabolic_1[1]+parallel_length]
-    # point_silt = [point_parabolic_2[0]+abs(lde_obj[5, 3]), point_parabolic_2[1]]
-    point_silt = [-0.68, 0]
-    point_silt = [0, 0]
-    # point_parabolic_2 = [point_silt[0]-abs(lde_obj[5, 3]), point_silt[1]]
-    # point_parabolic_1 = [point_parabolic_2[0], point_parabolic_2[1]-parallel_length]
-    # point_start = [point_parabolic_1[0]+abs(lde_obj[2, 3]), point_parabolic_1[1]]
+def compute_position(lde_obj, parallel_length=20.0):
+    point_start = [0, 0]
+    point_parabolic_1 = [point_start[0]-abs(lde_obj[2, 3]), point_start[1]]
+    point_parabolic_2 = [point_parabolic_1[0], point_parabolic_1[1]+parallel_length]
+    point_silt = [point_parabolic_2[0]+abs(lde_obj[5, 3]), point_parabolic_2[1]]
 
-    # point_mirror_1 = [point_silt[0]+abs(lde_obj[15, 4]), point_silt[1]]
-    point_mirror_1 = [point_silt[0]+abs(lde_obj[15, 4]+0.03+0.05+0.6), point_silt[1]]
+    # point_silt = [-0.6, 0]
+    point_silt = [0, 0]
+    point_parabolic_2 = [point_silt[0]-abs(lde_obj[5, 3]), point_silt[1]]
+    point_parabolic_1 = [point_parabolic_2[0], point_parabolic_2[1]-parallel_length]
+    point_start = [point_parabolic_1[0]+abs(lde_obj[2, 3]), point_parabolic_1[1]]
+
+    point_mirror_1 = [point_silt[0]+abs(lde_obj[15, 4]), point_silt[1]]
     point_grating = [point_mirror_1[0]-abs(lde_obj[21, 4])*cos(deg2rad(2*lde_obj[19, 10])), point_mirror_1[1]+abs(lde_obj[21, 4])*sin(deg2rad(2*lde_obj[19, 10]))]
     point_mirror_2 = [point_grating[0]+abs(lde_obj[24, 4])*cos(deg2rad(2*lde_obj[19, 10]+lde_obj[22, 10]+lde_obj[24, 10])), point_grating[1]-abs(lde_obj[24, 4])*sin(deg2rad(2*lde_obj[19, 10]+lde_obj[22, 10]+lde_obj[24, 10]))]
     point_sensor = [point_mirror_2[0]-abs(lde_obj[27, 4])*cos(deg2rad(2*lde_obj[19, 10]+lde_obj[22, 10]+lde_obj[24, 10]+2*lde_obj[27, 10])), point_mirror_2[1]+abs(lde_obj[27, 4])*sin(deg2rad(2*lde_obj[19, 10]+lde_obj[22, 10]+lde_obj[24, 10]+2*lde_obj[27, 10]))]
-    # print("point_start", [format(point_start[0], '.3f'), format(point_start[1], '.3f')])
-    # print("point_parabolic_1", [format(point_parabolic_1[0], '.3f'), format(point_parabolic_1[1], '.3f')])
-    # print("point_parabolic_2", [format(point_parabolic_2[0], '.3f'), format(point_parabolic_2[1], '.3f')])
+    print("point_start", [format(point_start[0], '.3f'), format(point_start[1], '.3f')])
+    print("point_parabolic_1", [format(point_parabolic_1[0], '.3f'), format(point_parabolic_1[1], '.3f')])
+    print("point_parabolic_2", [format(point_parabolic_2[0], '.3f'), format(point_parabolic_2[1], '.3f')])
     print("point_silt", [format(point_silt[0], '.3f'), format(point_silt[1], '.3f')])
     print("point_mirror_1", [format(point_mirror_1[0], '.3f'), format(point_mirror_1[1], '.3f')])
     print("point_grating", [format(point_grating[0], '.3f'), format(point_grating[1], '.3f')])
@@ -393,17 +393,17 @@ def compute_position(lde_obj, parallel_length=24.8):
     print("point_sensor", [format(point_sensor[0], '.3f'), format(point_sensor[1], '.3f')])
     # print(2*lde_obj[19, 10]+lde_obj[22, 10]+lde_obj[24, 10]+2*lde_obj[27, 10])
 
-    # angle_start = 180
-    # angle_parabolic_1 = angle_start - 90
-    # angle_parabolic_2 = angle_parabolic_1 - 180
+    angle_start = 180
+    angle_parabolic_1 = angle_start - 90
+    angle_parabolic_2 = angle_parabolic_1 - 180
     angle_silt = 180
     angle_mirror_1 = angle_silt - lde_obj[19, 10]
     angle_grating = - (180 - angle_mirror_1) - lde_obj[21, 10] - lde_obj[22, 10] #  - lde_obj[24, 10]
     angle_mirror_2 = angle_grating + 180 - lde_obj[24, 10] - lde_obj[25, 10]
     angle_sensor = angle_mirror_2 - 180 - lde_obj[27, 10] - lde_obj[28, 10]
-    # print("angle_start", format(angle_start, '.3f'))
-    # print("angle_parabolic_1", format(angle_parabolic_1, '.3f'))
-    # print("angle_parabolic_2", format(angle_parabolic_2, '.3f'))
+    print("angle_start", format(angle_start, '.3f'))
+    print("angle_parabolic_1", format(angle_parabolic_1, '.3f'))
+    print("angle_parabolic_2", format(angle_parabolic_2, '.3f'))
     print("angle_silt", format(angle_silt, '.3f'))
     print("angle_mirror_1", format(angle_mirror_1, '.3f'))
     print("angle_grating", format(angle_grating, '.3f'))
@@ -411,12 +411,12 @@ def compute_position(lde_obj, parallel_length=24.8):
     print("angle_sensor", format(angle_sensor, '.3f'))
 
     # (point, width, height, angle, distance)
-    # print("detailed positions of B:", compute_detailed_position_of_B(point_parabolic_1, 12.7, 20, angle_parabolic_1, 12.3, 7.2))
-    # print("detailed positions of C:", compute_detailed_position_of_C(point_parabolic_2, 12.7, 18.8, angle_parabolic_2, 11.7, 6.0))
-    print("detailed positions of D:", compute_detailed_position_of_D(point_silt, 25.4, 2.5, angle_silt, 0.6, 0.05, 0.03))
-    print("detailed positions of E:", compute_detailed_position_of_E(point_mirror_1, 12.5, 3.24, angle_mirror_1, 3))
-    print("detailed positions of F:", compute_detailed_position_of_F(point_grating, 12.7, 6, angle_grating))
-    print("detailed positions of G:", compute_detailed_position_of_G(point_mirror_2, 25.4, 6.8, angle_mirror_2, 6.0))
+    print("detailed positions of B:", compute_detailed_position_of_B(point_parabolic_1, 12.7, 20, angle_parabolic_1, 12.3, 7.2))
+    print("detailed positions of C:", compute_detailed_position_of_C(point_parabolic_2, 12.7, 18.8, angle_parabolic_2, 11.7, 6.0))
+    print("detailed positions of D:", compute_detailed_position_of_D(point_silt, 25.4, 2.5, angle_silt, 0.6, 0.025))
+    print("detailed positions of E:", compute_detailed_position_of_E(point_mirror_1, 25.4, 6.8, angle_mirror_1, 6.0))
+    print("detailed positions of F:", compute_detailed_position_of_F(point_grating, 25.4, 6, angle_grating))
+    print("detailed positions of G:", compute_detailed_position_of_G(point_mirror_2, 75, 16.7, angle_mirror_2, 12.0))
     print("detailed positions of H:", compute_detailed_position_of_H(point_sensor, 60, angle_sensor))
     pass
 
