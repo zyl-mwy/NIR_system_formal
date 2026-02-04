@@ -23,5 +23,5 @@
 ### FWHM
 ### 线色散
 ### 理论分辨率
-$$\delta\lambda=\frac{ad}{f_1}=\frac{a}{f_1 n}$$
-其中 $a$ 为狭缝宽度， $f_1$ 为准直镜焦距， $d$ 为光栅常数， $n$ 为光栅刻线密度
+$$\delta\lambda=\frac{ad}{f_1}=\frac{a}{f_1 n}=\frac{acos\beta}{f_1 n m}$$
+其中 $a$ 为狭缝宽度， $f_1$ 为准直镜焦距， $d$ 为光栅常数， $n$ 为光栅刻线密度， $\beta$ 为光栅衍射角， $m$ 为光栅衍射阶次
