@@ -22,6 +22,7 @@
 ### 瑞利
 ### FWHM
 ### 线色散
+### 艾里斑半径
 ### 理论分辨率
 $$\delta\lambda=\frac{ad}{f_1}=\frac{a}{f_1 n}=\frac{acos\beta}{f_1 n m}$$
 
