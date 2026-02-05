@@ -35,4 +35,7 @@ $$\delta\lambda=\frac{ad}{f_1}=\frac{a}{f_1 n}=\frac{acos\beta}{f_1 n m}$$
 ## 参数
 ### 闪耀波长
 $$\lambda_b=\lambda_1+\frac{1}{4}(\lambda_2-\lambda_1)$$
+## zemax
+### 优化
+* RSCE、RSCH、RSRE、RSRH、RWCE、RWCH、RWRE、RWRH —— RMS
 
