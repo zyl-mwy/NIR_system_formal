@@ -70,3 +70,4 @@ $$\lambda_b=\lambda_1+\frac{1}{4}(\lambda_2-\lambda_1)$$
 ### 球差
 ### 慧差
 ### 像散
+### 场曲
