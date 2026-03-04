@@ -28,6 +28,9 @@ class SpectrumProcessor : public QThread {
   
   // 设置使用的预测器索引（-1 表示不使用预测）
   void setPredictorIndex(int index);
+
+  // 设置用于触发处理的累积阈值（例如每多少条数据更新一次光谱）
+  void setSpectrumThreshold(int threshold);
   
   // 停止处理
   void stopProcessing();
@@ -57,6 +60,6 @@ class SpectrumProcessor : public QThread {
   SpectrumPredictorManager *predictorManager_;  // 预测器管理器
   int predictorIndex_;  // 当前使用的预测器索引（-1 表示不使用）
   bool stopRequested_;
-  static const int SPECTRUM_THRESHOLD = 3950;  // 达到3950条后处理
+  int spectrumThreshold_;  // 当前的累积阈值（默认3950，可动态调整）
 };
 

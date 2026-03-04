@@ -167,6 +167,17 @@ void UdpCommunicator::onSecondTimer() {
   packetsPerSecond_ = packetsThisSecond_;
   packetsThisSecond_ = 0;  // 重置当前秒计数
   emit packetsPerSecondChanged(packetsPerSecond_);
+
+  // 同步调整光谱处理线程的累积阈值：
+  // 当前接收速率为 n 条/秒，则每 n 条数据更新一次光谱曲线（约每秒刷新一次）
+  if (spectrumProcessor_) {
+    if (packetsPerSecond_ > 0) {
+      spectrumProcessor_->setSpectrumThreshold(packetsPerSecond_);
+    } else {
+      // 当速率未知或为 0 时，回退到较大的默认值，避免频繁刷新
+      spectrumProcessor_->setSpectrumThreshold(3950);
+    }
+  }
 }
 
 void UdpCommunicator::onUdpStatusChanged(const QString &message) {
@@ -209,7 +220,12 @@ void UdpCommunicator::startBlackReference() {
             this, &UdpCommunicator::onBlackReferenceProcessed, Qt::QueuedConnection);
     blackReferenceProcessor_->start();  // 启动处理线程
   }
-  
+  // 根据当前接收速率设置累积条数：参考条数 = n * 10（n 为条/秒）
+  if (blackReferenceProcessor_) {
+    int n = packetsPerSecond_ > 0 ? packetsPerSecond_ : 3950;
+    blackReferenceProcessor_->setReferenceThreshold(n * 10);
+  }
+
   blackReferenceProcessor_->startAccumulating();
   blackReferenceAccumulating_ = true;
   blackReferenceProgress_ = 0;
@@ -304,7 +320,12 @@ void UdpCommunicator::startWhiteReference() {
             this, &UdpCommunicator::onWhiteReferenceProcessed, Qt::QueuedConnection);
     whiteReferenceProcessor_->start();  // 启动处理线程
   }
-  
+  // 根据当前接收速率设置累积条数：参考条数 = n * 10（n 为条/秒）
+  if (whiteReferenceProcessor_) {
+    int n = packetsPerSecond_ > 0 ? packetsPerSecond_ : 3950;
+    whiteReferenceProcessor_->setReferenceThreshold(n * 10);
+  }
+
   whiteReferenceProcessor_->startAccumulating();
   whiteReferenceAccumulating_ = true;
   whiteReferenceProgress_ = 0;

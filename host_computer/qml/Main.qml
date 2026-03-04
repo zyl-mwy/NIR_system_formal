@@ -88,6 +88,14 @@ ApplicationWindow {
                     spectrumSnrWindow.requestActivate()
                 }
             }
+            MenuItem {
+                text: "光谱仪参数设置"
+                onTriggered: {
+                    spectrometerParamWindow.visible = true
+                    spectrometerParamWindow.raise()
+                    spectrometerParamWindow.requestActivate()
+                }
+            }
         }
     }
 
@@ -166,6 +174,8 @@ ApplicationWindow {
         color: "#f5f6fa"
 
         ColumnLayout {
+            // 是否已经被用户手动调整过读出时间，如果是则不再自动跟随曝光时间计算
+            property bool readoutCustomized: false
             anchors.fill: parent
             anchors.margins: 12
             spacing: 8
@@ -958,6 +968,221 @@ ApplicationWindow {
         }
     }
 
+    // 光谱仪参数设置窗口：可通过串口设置曝光时间和读出时间
+    Window {
+        id: spectrometerParamWindow
+        width: 520
+        height: 340
+        minimumWidth: 480
+        minimumHeight: 300
+        title: "光谱仪参数设置"
+        visible: false
+        color: "#f5f6fa"
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 8
+
+            Label {
+                text: "通过串口向 SCL1024 控制板发送 0xA4 / 0xA5 命令，用于设置探测器的曝光时间和读出时间。单位为微秒。"
+                wrapMode: Label.Wrap
+                color: "#555555"
+                font.pixelSize: 13
+                Layout.fillWidth: true
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: 8
+                color: "#ffffff"
+                border.color: "#dcdde1"
+                border.width: 1
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 10
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Label {
+                            text: "串口设备:"
+                            Layout.preferredWidth: 70
+                            color: "#555555"
+                            font.pixelSize: 12
+                        }
+
+                        TextField {
+                            id: spectrometerSerialPortInput
+                            Layout.fillWidth: true
+                            text: serialPortInput ? serialPortInput.text : "/dev/ttyUSB0"
+                            placeholderText: "例如: /dev/ttyUSB0"
+                            font.pixelSize: 12
+                            padding: 6
+                            background: Rectangle {
+                                color: "#f8f9fa"
+                                border.color: spectrometerSerialPortInput.focus ? "#3498db" : "#dee2e6"
+                                border.width: spectrometerSerialPortInput.focus ? 2 : 1
+                                radius: 4
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 12
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+
+                            Label {
+                                text: "曝光时间 (µs)"
+                                color: "#34495e"
+                                font.pixelSize: 12
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 6
+
+                                TextField {
+                                    id: exposureTimeInput
+                                    Layout.fillWidth: true
+                                    text: "200"
+                                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                                    font.pixelSize: 12
+                                    padding: 6
+                                    background: Rectangle {
+                                        color: "#f8f9fa"
+                                        border.color: exposureTimeInput.focus ? "#3498db" : "#dee2e6"
+                                        border.width: exposureTimeInput.focus ? 2 : 1
+                                        radius: 4
+                                    }
+                                    onEditingFinished: {
+                                        const v = Number(text)
+                                        if (!isNaN(v) && v > 0 && !spectrometerParamWindow.readoutCustomized) {
+                                            // 默认读出时间 = 曝光时间 * 217 / 200
+                                            const readout = v * 217.0 / 200.0
+                                            readoutTimeInput.text = Math.round(readout).toString()
+                                        }
+                                    }
+                                }
+
+                                Button {
+                                    text: "写入曝光时间"
+                                    Layout.preferredWidth: 110
+                                    onClicked: {
+                                        const v = Number(exposureTimeInput.text)
+                                        if (isNaN(v) || v <= 0) {
+                                            spectrometerStatusLabel.text = "✗ 曝光时间输入无效，请输入正数（单位 µs）"
+                                            spectrometerStatusLabel.color = "#e74c3c"
+                                            return
+                                        }
+                                        const port = spectrometerSerialPortInput.text && spectrometerSerialPortInput.text.length > 0
+                                                ? spectrometerSerialPortInput.text
+                                                : "/dev/ttyUSB0"
+                                        const ok = serialComm.setExposureTimeUs(v, port)
+                                        if (!ok) {
+                                            spectrometerStatusLabel.text = "✗ 发送曝光时间命令失败，请检查串口连接"
+                                            spectrometerStatusLabel.color = "#e74c3c"
+                                        } else {
+                                            spectrometerStatusLabel.text = "✓ 已将曝光时间写入控制板（约 " + v.toFixed(2) + " µs）"
+                                            spectrometerStatusLabel.color = "#27ae60"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+
+                            Label {
+                                text: "读出时间 (µs)"
+                                color: "#34495e"
+                                font.pixelSize: 12
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 6
+
+                                TextField {
+                                    id: readoutTimeInput
+                                    Layout.fillWidth: true
+                                    text: "64"
+                                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                                    font.pixelSize: 12
+                                    padding: 6
+                                    background: Rectangle {
+                                        color: "#f8f9fa"
+                                        border.color: readoutTimeInput.focus ? "#3498db" : "#dee2e6"
+                                        border.width: readoutTimeInput.focus ? 2 : 1
+                                        radius: 4
+                                    }
+                                    onTextEdited: {
+                                        // 用户主动编辑读出时间后，标记为自定义，后续修改曝光时间不再自动覆盖
+                                        spectrometerParamWindow.readoutCustomized = true
+                                    }
+                                }
+
+                                Button {
+                                    text: "写入读出时间"
+                                    Layout.preferredWidth: 110
+                                    onClicked: {
+                                        const v = Number(readoutTimeInput.text)
+                                        if (isNaN(v) || v <= 0) {
+                                            spectrometerStatusLabel.text = "✗ 读出时间输入无效，请输入正数（单位 µs）"
+                                            spectrometerStatusLabel.color = "#e74c3c"
+                                            return
+                                        }
+                                        const port = spectrometerSerialPortInput.text && spectrometerSerialPortInput.text.length > 0
+                                                ? spectrometerSerialPortInput.text
+                                                : "/dev/ttyUSB0"
+                                        const ok = serialComm.setReadoutTimeUs(v, port)
+                                        if (!ok) {
+                                            spectrometerStatusLabel.text = "✗ 发送读出时间命令失败，请检查串口连接"
+                                            spectrometerStatusLabel.color = "#e74c3c"
+                                        } else {
+                                            spectrometerStatusLabel.text = "✓ 已将读出时间写入控制板（约 " + v.toFixed(2) + " µs）"
+                                            spectrometerStatusLabel.color = "#27ae60"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Label {
+                            id: spectrometerStatusLabel
+                            Layout.fillWidth: true
+                            text: "请根据需要输入曝光时间和读出时间，然后点击对应按钮写入控制板。"
+                            wrapMode: Label.Wrap
+                            color: "#7f8c8d"
+                            font.pixelSize: 11
+                        }
+
+                        Button {
+                            text: "关闭"
+                            Layout.preferredWidth: 70
+                            onClicked: spectrometerParamWindow.close()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     ScrollView {
         id: scrollView
         anchors.fill: parent
@@ -1252,7 +1477,14 @@ ApplicationWindow {
                         }
                         Label {
                             id: blackReferenceProgressLabel
-                            text: blackReferenceData !== null ? "已经成功获取" : (udpComm.blackReferenceProgress.toString() + " / 39500")
+                            text: blackReferenceData !== null
+                                  ? "已经成功获取"
+                                  : (udpComm.blackReferenceProgress.toString()
+                                     + " / (约 "
+                                     + (udpComm.packetsPerSecond > 0
+                                           ? (udpComm.packetsPerSecond * 10).toString()
+                                           : "39500")
+                                     + " 条)")
                             color: blackReferenceData !== null ? "#27ae60" : (udpComm.blackReferenceAccumulating ? "#3498db" : "#7f8c8d")
                             font.bold: blackReferenceData !== null || udpComm.blackReferenceAccumulating
                             font.pixelSize: 12
@@ -1310,7 +1542,14 @@ ApplicationWindow {
                         }
                         Label {
                             id: whiteReferenceProgressLabel
-                            text: whiteReferenceData !== null ? "已经成功获取" : (udpComm.whiteReferenceProgress.toString() + " / 39500")
+                            text: whiteReferenceData !== null
+                                  ? "已经成功获取"
+                                  : (udpComm.whiteReferenceProgress.toString()
+                                     + " / (约 "
+                                     + (udpComm.packetsPerSecond > 0
+                                           ? (udpComm.packetsPerSecond * 10).toString()
+                                           : "39500")
+                                     + " 条)")
                             color: whiteReferenceData !== null ? "#27ae60" : (udpComm.whiteReferenceAccumulating ? "#3498db" : "#7f8c8d")
                             font.bold: whiteReferenceData !== null || udpComm.whiteReferenceAccumulating
                             font.pixelSize: 12
@@ -1683,7 +1922,9 @@ ApplicationWindow {
                         spacing: 4
 
                         Label {
-                            text: "光谱曲线 (每3950条数据更新一次)"
+                            text: "光谱曲线（约每 1 秒更新一次，当前接收速率 " +
+                                  (udpComm.packetsPerSecond > 0 ? udpComm.packetsPerSecond.toString() : "0") +
+                                  " 条/秒）"
                             font.bold: true
                             color: "#34495e"
                             font.pixelSize: 12

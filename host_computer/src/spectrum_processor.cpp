@@ -5,7 +5,11 @@
 #include <QtMath>
 
 SpectrumProcessor::SpectrumProcessor(QObject *parent)
-    : QThread(parent), stopRequested_(false), predictorManager_(nullptr), predictorIndex_(-1) {
+    : QThread(parent),
+      stopRequested_(false),
+      predictorManager_(nullptr),
+      predictorIndex_(-1),
+      spectrumThreshold_(3950) {  // 默认保持原来行为
 }
 
 SpectrumProcessor::~SpectrumProcessor() {
@@ -38,6 +42,18 @@ void SpectrumProcessor::setPredictorIndex(int index) {
   predictorIndex_ = index;
 }
 
+void SpectrumProcessor::setSpectrumThreshold(int threshold) {
+  QMutexLocker locker(&mutex_);
+  // 避免阈值过小或无效，限制在合理范围内
+  if (threshold < 1) {
+    spectrumThreshold_ = 1;
+  } else if (threshold > 3950) {
+    spectrumThreshold_ = 3950;
+  } else {
+    spectrumThreshold_ = threshold;
+  }
+}
+
 void SpectrumProcessor::stopProcessing() {
   {
     QMutexLocker locker(&mutex_);
@@ -58,7 +74,8 @@ void SpectrumProcessor::run() {
     QMutexLocker locker(&mutex_);
     
     // 等待有数据或停止请求
-    while (accumulatedData_.size() < SPECTRUM_THRESHOLD && !stopRequested_) {
+    // 使用可动态调整的阈值（例如根据当前接收速率设为“每秒多少条”）
+    while (accumulatedData_.size() < spectrumThreshold_ && !stopRequested_) {
       condition_.wait(&mutex_);
     }
 
@@ -67,7 +84,7 @@ void SpectrumProcessor::run() {
     }
 
     // 如果累积的数据达到阈值，进行处理
-    if (accumulatedData_.size() >= SPECTRUM_THRESHOLD) {
+    if (accumulatedData_.size() >= spectrumThreshold_) {
       // 复制数据到本地，释放锁
       QList<QVariantList> dataToProcess = accumulatedData_;
       accumulatedData_.clear();

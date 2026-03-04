@@ -3,7 +3,11 @@
 #include <QDebug>
 
 ReferenceProcessor::ReferenceProcessor(ReferenceType type, QObject *parent)
-    : QThread(parent), stopRequested_(false), accumulating_(false), referenceType_(type) {
+    : QThread(parent),
+      stopRequested_(false),
+      accumulating_(false),
+      referenceType_(type),
+      referenceThreshold_(39500) {  // 默认保持原有阈值
 }
 
 ReferenceProcessor::~ReferenceProcessor() {
@@ -28,12 +32,24 @@ int ReferenceProcessor::getAccumulatedCount() const {
   return accumulatedData_.size();
 }
 
+void ReferenceProcessor::setReferenceThreshold(int threshold) {
+  QMutexLocker locker(&mutex_);
+  // 限制阈值范围，避免过小导致噪声过大，或过大导致时间过长
+  if (threshold < 10) {
+    referenceThreshold_ = 10;
+  } else if (threshold > 39500) {
+    referenceThreshold_ = 39500;
+  } else {
+    referenceThreshold_ = threshold;
+  }
+}
+
 void ReferenceProcessor::addSpectrumData(const QVariantList &data) {
   QMutexLocker locker(&mutex_);
-  if (accumulating_ && accumulatedData_.size() < REFERENCE_THRESHOLD) {
+  if (accumulating_ && accumulatedData_.size() < referenceThreshold_) {
     accumulatedData_.append(data);
     // 发送进度更新信号
-    emit progressChanged(accumulatedData_.size(), REFERENCE_THRESHOLD);
+    emit progressChanged(accumulatedData_.size(), referenceThreshold_);
     condition_.wakeOne();  // 唤醒处理线程
   }
 }
@@ -59,7 +75,7 @@ void ReferenceProcessor::run() {
     QMutexLocker locker(&mutex_);
     
     // 等待有数据或停止请求
-    while ((!accumulating_ || accumulatedData_.size() < REFERENCE_THRESHOLD) && !stopRequested_) {
+    while ((!accumulating_ || accumulatedData_.size() < referenceThreshold_) && !stopRequested_) {
       condition_.wait(&mutex_);
     }
 
@@ -68,7 +84,7 @@ void ReferenceProcessor::run() {
     }
 
     // 如果累积的数据达到阈值，进行处理
-    if (accumulating_ && accumulatedData_.size() >= REFERENCE_THRESHOLD) {
+    if (accumulating_ && accumulatedData_.size() >= referenceThreshold_) {
       // 复制数据到本地，释放锁
       QList<QVariantList> dataToProcess = accumulatedData_;
       accumulatedData_.clear();

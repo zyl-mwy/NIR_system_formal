@@ -5,6 +5,7 @@
 #include <termios.h>
 #include <errno.h>
 #include <cstring>
+#include <QtMath>
 
 SerialCommunicator::SerialCommunicator(QObject *parent) : QObject(parent), isStarted_(false) {
 }
@@ -37,6 +38,64 @@ bool SerialCommunicator::toggleCommand(const QString &portName) {
   } else {
     return sendStartCommand(portName);
   }
+}
+
+bool SerialCommunicator::setExposureTimeUs(double exposureTimeUs,
+                                            const QString &portName) {
+  if (exposureTimeUs <= 0.0) {
+    emit statusChanged(QStringLiteral("✗ 曝光时间必须为正数"));
+    return false;
+  }
+
+  // 根据芯片使用说明，0xA4 命令每 LSB 约 186 ns
+  // N_expo ≈ exposureTimeUs(µs) / 0.186
+  const double stepNs = 186.0;
+  qint64 ticks = qRound64(exposureTimeUs * 1000.0 / stepNs);
+  if (ticks < 0) ticks = 0;
+  if (ticks > 0xFFFFFF) ticks = 0xFFFFFF;
+
+  unsigned char cmd[] = {
+      0x08,
+      0xA4,
+      static_cast<unsigned char>((ticks >> 16) & 0xFF),
+      static_cast<unsigned char>((ticks >> 8) & 0xFF),
+      static_cast<unsigned char>(ticks & 0xFF),
+      0x3E,
+      0x09,
+      0xD7};
+
+  return sendCommand(portName, cmd, sizeof(cmd),
+                     QStringLiteral("设置曝光时间(约 %1 µs)")
+                         .arg(exposureTimeUs, 0, 'f', 2));
+}
+
+bool SerialCommunicator::setReadoutTimeUs(double readoutTimeUs,
+                                           const QString &portName) {
+  if (readoutTimeUs <= 0.0) {
+    emit statusChanged(QStringLiteral("✗ 读出时间必须为正数"));
+    return false;
+  }
+
+  // 使用说明中 0xA5 命令每 LSB 约 1488 ns
+  // N_read ≈ readoutTimeUs(µs) / 1.488
+  const double stepNs = 1488.0;
+  qint64 ticks = qRound64(readoutTimeUs * 1000.0 / stepNs);
+  if (ticks < 0) ticks = 0;
+  if (ticks > 0xFFFFFF) ticks = 0xFFFFFF;
+
+  unsigned char cmd[] = {
+      0x08,
+      0xA5,
+      static_cast<unsigned char>((ticks >> 16) & 0xFF),
+      static_cast<unsigned char>((ticks >> 8) & 0xFF),
+      static_cast<unsigned char>(ticks & 0xFF),
+      0x3E,
+      0x09,
+      0xD7};
+
+  return sendCommand(portName, cmd, sizeof(cmd),
+                     QStringLiteral("设置读出时间(约 %1 µs)")
+                         .arg(readoutTimeUs, 0, 'f', 2));
 }
 
 bool SerialCommunicator::sendCommand(const QString &portName, const unsigned char *cmd, int cmdSize, const QString &cmdName) {

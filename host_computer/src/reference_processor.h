@@ -37,6 +37,9 @@ class ReferenceProcessor : public QThread {
   // 获取参考类型
   ReferenceType getReferenceType() const { return referenceType_; }
 
+  // 设置累积阈值（需要多少条数据后进行参考计算）
+  void setReferenceThreshold(int threshold);
+
  signals:
   // 累积进度更新
   void progressChanged(int count, int total);
@@ -57,6 +60,6 @@ class ReferenceProcessor : public QThread {
   bool stopRequested_;
   bool accumulating_;  // 是否正在累积
   ReferenceType referenceType_;  // 参考类型（黑参考或白参考）
-  static const int REFERENCE_THRESHOLD = 39500;  // 需要累积39500条数据
+  int referenceThreshold_;  // 累积阈值（默认39500，可动态调整）
 };
 

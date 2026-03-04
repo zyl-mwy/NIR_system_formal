@@ -16,6 +16,12 @@ class SerialCommunicator : public QObject {
   Q_INVOKABLE bool sendStopCommand(const QString &portName = QStringLiteral("/dev/ttyUSB0"));
   Q_INVOKABLE bool toggleCommand(const QString &portName = QStringLiteral("/dev/ttyUSB0"));
 
+  // 直接通过串口设置探测器曝光时间和读出时间（单位：微秒）
+  Q_INVOKABLE bool setExposureTimeUs(double exposureTimeUs,
+                                     const QString &portName = QStringLiteral("/dev/ttyUSB0"));
+  Q_INVOKABLE bool setReadoutTimeUs(double readoutTimeUs,
+                                    const QString &portName = QStringLiteral("/dev/ttyUSB0"));
+
  signals:
   void statusChanged(const QString &message);
   void stateChanged(bool started);
