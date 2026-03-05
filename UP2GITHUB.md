@@ -22,3 +22,20 @@
 
 * git push -u origin main
 * git push
+### solve big file
+* git rev-list --objects --all | grep "host_computer/build/log/result.csv"
+  
+* sudo apt install git-filter-repo
+* git filter-repo --force --path host_computer/build/log/result.csv --invert-paths
+
+* echo "host_computer/build/" >> .gitignore
+* git add .gitignore
+* git commit -m "chore: ignore build artifacts"
+
+* git push origin main --force
+### git push fail
+* git remote -v
+
+* git remote add origin git@github.com:zyl-mwy/NIR_system_formal.git
+* git remote -v
+* git push -u origin main --force
