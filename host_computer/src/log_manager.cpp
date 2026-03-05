@@ -11,7 +11,8 @@ QtMessageHandler LogManager::s_prevHandler = nullptr;
 
 LogManager::LogManager(QObject *parent)
     : QObject(parent),
-      resultSpectrumLen_(1024) {  // 默认光谱点数（1000~1600nm 分成 1024 点）
+      resultSpectrumLen_(1024),    // 默认光谱点数（1000~1600nm 分成 1024 点）
+      maxEntries_(kMaxEntries) {   // 日志条数上限，默认使用常量
   // 简单单例：保存最后一个创建的实例指针
   s_instance = this;
 
@@ -54,6 +55,25 @@ void LogManager::logInfo(const QString &source, const QString &message) {
     fullMsg = QStringLiteral("[%1] %2").arg(source, message);
   }
   append(QtInfoMsg, fullMsg);
+}
+
+void LogManager::setMaxEntries(int maxEntries) {
+  QMutexLocker locker(&mutex_);
+  if (maxEntries < 1) {
+    maxEntries_ = 1;  // 至少保留 1 条
+  } else if (maxEntries > 1000000) {
+    maxEntries_ = 1000000;  // 上限防止误操作
+  } else {
+    maxEntries_ = maxEntries;
+  }
+
+  // 如果当前条数已经超过新的上限，立即丢弃最旧的
+  while (entries_.size() > maxEntries_) {
+    entries_.removeFirst();
+  }
+
+  locker.unlock();
+  emit entriesChanged();
 }
 
 void LogManager::logPredictionResult(int predictorIndex,
@@ -169,7 +189,7 @@ void LogManager::append(QtMsgType type, const QString &msg) {
     entries_.append(entry);
 
     // 控制最大条数，避免内存无限增长
-    while (entries_.size() > kMaxEntries) {
+    while (entries_.size() > maxEntries_) {
       entries_.removeFirst();
     }
   }

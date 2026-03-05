@@ -51,6 +51,9 @@ class LogManager : public QObject {
   // 最大保留的日志条数（超过后会丢弃最旧的）
   static const int kMaxEntries = 10000;
 
+  // 允许在运行时调整最大保留条数（QML 可调用）
+  Q_INVOKABLE void setMaxEntries(int maxEntries);
+
  signals:
   void entriesChanged();
 
@@ -59,6 +62,7 @@ class LogManager : public QObject {
 
   QVariantList entries_;
   mutable QMutex mutex_;
+  int maxEntries_;            // 当前日志条数上限（默认 kMaxEntries，可动态调整）
   QString logFilePath_;      // 文本日志路径 log/app.log
   QString resultCsvPath_;    // 预测结果 CSV 路径 log/result.csv
   int resultSpectrumLen_;    // 预测结果 CSV 中光谱列的长度（首次写入时确定）

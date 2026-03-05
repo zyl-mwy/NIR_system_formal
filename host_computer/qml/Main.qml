@@ -96,6 +96,14 @@ ApplicationWindow {
                     spectrometerParamWindow.requestActivate()
                 }
             }
+            MenuItem {
+                text: "数据/日志上限设置"
+                onTriggered: {
+                    limitsWindow.visible = true
+                    limitsWindow.raise()
+                    limitsWindow.requestActivate()
+                }
+            }
         }
     }
 
@@ -1178,6 +1186,145 @@ ApplicationWindow {
                             onClicked: spectrometerParamWindow.close()
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // 数据 / 日志最大条数设置窗口
+    Window {
+        id: limitsWindow
+        width: 480
+        height: 320
+        minimumWidth: 440
+        minimumHeight: 280
+        title: "数据 / 日志上限设置"
+        visible: false
+        color: "#f5f6fa"
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 10
+
+            Label {
+                text: "用于限制内存占用：超过上限时会自动丢弃最旧的数据/日志。"
+                wrapMode: Label.Wrap
+                color: "#555555"
+                font.pixelSize: 12
+                Layout.fillWidth: true
+            }
+
+            GridLayout {
+                columns: 2
+                columnSpacing: 12
+                rowSpacing: 8
+                Layout.fillWidth: true
+
+                Label {
+                    text: "日志条数上限:"
+                    color: "#34495e"
+                    font.pixelSize: 12
+                }
+                TextField {
+                    id: logLimitInput
+                    text: maxLogEntries.toString()
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    font.pixelSize: 12
+                    padding: 6
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "预测结果记录上限:"
+                    color: "#34495e"
+                    font.pixelSize: 12
+                }
+                TextField {
+                    id: predictionRecordsLimitInput
+                    text: maxPredictionRecords.toString()
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    font.pixelSize: 12
+                    padding: 6
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "预测历史点数上限:"
+                    color: "#34495e"
+                    font.pixelSize: 12
+                }
+                TextField {
+                    id: predictionHistoryLimitInput
+                    text: maxPredictionHistory.toString()
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    font.pixelSize: 12
+                    padding: 6
+                    Layout.fillWidth: true
+                }
+
+                Label {
+                    text: "单次光谱记录上限:"
+                    color: "#34495e"
+                    font.pixelSize: 12
+                }
+                TextField {
+                    id: singleSpectrumLimitInput
+                    text: maxSingleSpectrumRecords.toString()
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    font.pixelSize: 12
+                    padding: 6
+                    Layout.fillWidth: true
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Label {
+                    id: limitsStatusLabel
+                    Layout.fillWidth: true
+                    text: ""
+                    color: "#7f8c8d"
+                    font.pixelSize: 11
+                    wrapMode: Label.Wrap
+                }
+
+                Button {
+                    text: "应用"
+                    Layout.preferredWidth: 72
+                    onClicked: {
+                        function parsePositiveInt(s, fallback) {
+                            var v = Number(s)
+                            if (isNaN(v) || v <= 0) return fallback
+                            return Math.round(v)
+                        }
+
+                        var newLogLimit = parsePositiveInt(logLimitInput.text, maxLogEntries)
+                        var newPredRecLimit = parsePositiveInt(predictionRecordsLimitInput.text, maxPredictionRecords)
+                        var newHistLimit = parsePositiveInt(predictionHistoryLimitInput.text, maxPredictionHistory)
+                        var newSingleLimit = parsePositiveInt(singleSpectrumLimitInput.text, maxSingleSpectrumRecords)
+
+                        maxLogEntries = newLogLimit
+                        maxPredictionRecords = newPredRecLimit
+                        maxPredictionHistory = newHistLimit
+                        maxSingleSpectrumRecords = newSingleLimit
+
+                        // 同步通知 C++ 日志管理器
+                        if (typeof logManager !== "undefined" && logManager && logManager.setMaxEntries) {
+                            logManager.setMaxEntries(newLogLimit)
+                        }
+
+                        limitsStatusLabel.text = "✓ 已应用新的上限设置，超过上限的最旧数据将被自动丢弃。"
+                        limitsStatusLabel.color = "#27ae60"
+                    }
+                }
+
+                Button {
+                    text: "关闭"
+                    Layout.preferredWidth: 72
+                    onClicked: limitsWindow.close()
                 }
             }
         }
@@ -2780,6 +2927,12 @@ ApplicationWindow {
                         moisture: Number(singleSpectrumMoistureInput.text)
                     })
 
+                    // 如果超过最大单次光谱记录条数，则丢弃最旧的一条
+                    var maxSingle = maxSingleSpectrumRecords > 0 ? maxSingleSpectrumRecords : 200
+                    while (singleSpectrumRecords.length > maxSingle) {
+                        singleSpectrumRecords.shift()
+                    }
+
                     // 显式增加计数，触发界面中所有 model 重新计算
                     singleSpectrumRecordCount = singleSpectrumRecordCount + 1
 
@@ -2883,19 +3036,21 @@ ApplicationWindow {
                 // 创建一个新的数组以触发 QML 绑定更新
                 var newList = predictionRecords.slice()
                 newList.push(rec)
-                // 只保留最近 200 条，防止无限增长
-                if (newList.length > 200) {
+                // 只保留最近 maxPredictionRecords 条，防止无限增长
+                var maxRecs = maxPredictionRecords > 0 ? maxPredictionRecords : 200
+                while (newList.length > maxRecs) {
                     newList.shift()
                 }
                 predictionRecords = newList
                 
-                // 更新预测结果历史（最多保存10个）
+                // 更新预测结果历史（最多保存 maxPredictionHistory 个）
                 if (!predictionHistory) {
                     predictionHistory = []
                 }
                 predictionHistory.push(predictionValue)
-                // 如果超过10个，移除最旧的数据
-                if (predictionHistory.length > 10) {
+                // 如果超过上限，移除最旧的数据
+                var maxHist = maxPredictionHistory > 0 ? maxPredictionHistory : 10
+                while (predictionHistory.length > maxHist) {
                     predictionHistory.shift()
                 }
                 console.log("onPredictionReady - predictionHistory 大小:", predictionHistory.length, "最新值:", predictionValue)
@@ -2983,6 +3138,12 @@ ApplicationWindow {
     property int csvTargetRecordIndex: -1
     // 从 CSV 导入时暂存的新记录列表，供用户选择覆盖或追加
     property var pendingImportedRecords: []
+
+    // 各类数据/日志的最大保留条数（可通过“数据/日志上限设置”窗口调整）
+    property int maxLogEntries: 10000
+    property int maxPredictionRecords: 200
+    property int maxPredictionHistory: 10
+    property int maxSingleSpectrumRecords: 200
 
     Connections {
         target: serialComm
