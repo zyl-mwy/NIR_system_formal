@@ -286,5 +286,6 @@ nvcc -V
 ### 纯fpga开发板
 #### 明德扬fpga
 * https://alidocs.dingtalk.com/i/nodes/QOG9lyrgJPjaX5ZvfLRDXqjQWzN67Mw4?doc_type=wiki_doc&utm_scene=team_space
+* 最新802网盘资料 链接：https://pan.baidu.com/s/1OjWfXyjlDIc3JnBLPjN6JQ 提取码：0y5l
 #### 老师给的板子
 * https://www.manualslib.com/manual/2380620/Alinx-Av6150.html
