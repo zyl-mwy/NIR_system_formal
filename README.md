@@ -240,3 +240,44 @@ nvcc -V
    6. 编译源代码
    7. 将电脑上预训练得到的权重文件，拷贝到树莓派上的相同位置
    8. 双击运行
+## 其他开源项目
+### 最值得先看的：整链条比较完整的项目
+#### drmcnelson / TCD1304-Sensor-Device-with-Linear-Response-and-16-Bit-Differential-ADC
+* https://github.com/drmcnelson/TCD1304-Sensor-Device-with-Linear-Response-and-16-Bit-Differential-ADC.git
+* 基于 TCD1304 线性 CCD 的完整项目，仓库明确写了包含 gerbers、BOM、firmware、library 和 user app，也就是硬件、电路、固件、用户端软件基本都给了。虽然不是 InGaAs，也不是 FPGA，而是 Teensy/Arduino 体系
+#### drmcnelson / Linear-CCD-with-LTSpice-KiCAD-Firmware-and-Python-Library
+* https://github.com/drmcnelson/Linear-CCD-with-LTSpice-KiCAD-Firmware-and-Python-Library.git
+* 上面那个项目的前代/相关项目，仓库说明非常明确：包含 电路设计、固件、Python 库，面向 linear CCD + Teensy 4，并且带 trigger / gate / sync。
+#### drmcnelson / S11639-01-Linear-CCD-PCB-and-Code
+* https://github.com/drmcnelson/S11639-01-Linear-CCD-PCB-and-Code.git
+* Hamamatsu S11639-01 线性 CCD，仓库说明写得很直接：提供 electronics, firmware and host software；控制器和主机通过 USB 交互，命令接口是 human-readable ASCII，数据可选 ASCII 或 binary。
+### 和“光谱仪成品/原型”更接近的项目
+#### leobrowning92 / arduino-lineCCD-spectrometer
+* https://github.com/leobrowning92/arduino-lineCCD-spectrometer.git
+* 基于 TCD1304AP line CCD 做光谱仪，仓库说明明确说“数据由 Arduino 读出，再通过 serial USB 发到电脑”。
+#### SmokyMountainScientific / Teensy-Spectrometer-Firmware
+* https://github.com/SmokyMountainScientific/Teensy-Spectrometer-Firmware.git
+* 基于 Teensy 4.0 + TCD1304 CCD 的光谱仪固件项目，说明里提到配套还有 校准界面、3D 打印结构件 和其他硬件资源
+#### astuder / epc901
+* https://github.com/astuder/epc901.git
+* 比较完整的 1024×1 线阵 CCD 传感器 项目。仓库 README 明确写了包含 hardware、software、firmware、capture logic、trigger logic、transfer format、Python 脚本
+### 不是线阵 CCD，但对上位机和通信很有借鉴意义
+#### uutzinger / C12880MA
+* https://github.com/uutzinger/C12880MA.git
+* 基于 Hamamatsu C12880MA 微型光谱芯片 的项目，仓库说明写得很清楚：利用光谱芯片给出的 ADC trigger signal，在 Teensy 上通过 DMA 读数据。它不是 C-T + 外置线阵，而是集成微型光谱器件
+#### icfaust / c12880maPi
+* https://github.com/icfaust/c12880maPi.git
+* Raspberry Pi + C12880MA + ADC 板 的接口软件，仓库明确说有 C++ 通信代码，也有 CLI 和 GUI。
+#### eulerlab / spectral-scanner
+* https://github.com/eulerlab/spectral-scanner.git
+* 基于 C12880MA 的低成本 spectral scanner，仓库说明提到有 notebook，并采用 MicroPython-ESP32。
+### 坚持要往 FPGA 方向靠，哪些项目能补上“控制器”这一块
+#### KoroB14 / DECA_USB3_Cam
+* https://github.com/KoroB14/DECA_USB3_Cam.git
+* MAX10 FPGA + CYUSB3014 + Python client 的视频流传输项目，虽然对象是相机而不是光谱仪，但仓库明确提供了 USB 3.0 streaming 和 Python-based client。
+#### amsheth / Object-Tracking-with-FPGA
+* https://github.com/amsheth/Object-Tracking-with-FPGA.git
+* 使用 Opal Kelly XEM7310 FPGA，并通过其数据传输模块把 FPGA 数据送到 PC 端 Python kernel。
+#### Basil
+* https://github.com/SiLab-Bonn/basil.git
+* 一个 Python + Verilog 的模块化 DAQ 框架，说明里明确写了提供 FPGA firmware modules 和通用采集系统设计支持。
