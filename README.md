@@ -283,3 +283,5 @@ nvcc -V
 #### Basil
 * https://github.com/SiLab-Bonn/basil.git
 * 一个 Python + Verilog 的模块化 DAQ 框架，说明里明确写了提供 FPGA firmware modules 和通用采集系统设计支持。
+### 明德扬fpga
+* https://alidocs.dingtalk.com/i/nodes/QOG9lyrgJPjaX5ZvfLRDXqjQWzN67Mw4?doc_type=wiki_doc&utm_scene=team_space
