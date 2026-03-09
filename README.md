@@ -242,6 +242,8 @@ nvcc -V
    8. 双击运行
 ## 其他开源项目
 ### 最值得先看的：整链条比较完整的项目
+#### 最全
+* https://hub.hamamatsu.com/us/en/technical-notes/image-sensors/ingaas-linear-sensor-reference-circuit-design-section-1.html
 #### drmcnelson / TCD1304-Sensor-Device-with-Linear-Response-and-16-Bit-Differential-ADC
 * https://github.com/drmcnelson/TCD1304-Sensor-Device-with-Linear-Response-and-16-Bit-Differential-ADC.git
 * 基于 TCD1304 线性 CCD 的完整项目，仓库明确写了包含 gerbers、BOM、firmware、library 和 user app，也就是硬件、电路、固件、用户端软件基本都给了。虽然不是 InGaAs，也不是 FPGA，而是 Teensy/Arduino 体系
