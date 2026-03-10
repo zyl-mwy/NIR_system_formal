@@ -289,5 +289,6 @@ nvcc -V
 * 最新802网盘资料 链接：https://pan.baidu.com/s/1OjWfXyjlDIc3JnBLPjN6JQ 提取码：0y5l
 * https://gitcode.com/Open-source-documentation-tutorial/af1b1/?utm_source=document_gitcode&index=top&type=card&
 * https://www.bilibili.com/video/BV14K4y1u7kH/?spm_id_from=333.1387.favlist.content.click
+* https://blog.csdn.net/weixin_44212493/article/details/104334510
 #### 老师给的板子
 * https://www.manualslib.com/manual/2380620/Alinx-Av6150.html
