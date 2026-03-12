@@ -292,3 +292,5 @@ nvcc -V
 * https://blog.csdn.net/weixin_44212493/article/details/104334510
 #### 老师给的板子
 * https://www.manualslib.com/manual/2380620/Alinx-Av6150.html
+#### 正点原子
+* http://47.111.11.73/docs/boards/fpga/index.html
