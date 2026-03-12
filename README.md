@@ -294,3 +294,5 @@ nvcc -V
 * https://www.manualslib.com/manual/2380620/Alinx-Av6150.html
 #### 正点原子
 * http://47.111.11.73/docs/boards/fpga/index.html
+#### 野火
+* https://doc.embedfire.com/fpga/altera/ep4ce10_pro/zh/latest/code/foreword.html
