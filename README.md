@@ -293,6 +293,7 @@ nvcc -V
 #### 老师给的板子
 * https://www.manualslib.com/manual/2380620/Alinx-Av6150.html
 * https://www.bilibili.com/video/BV1E5tnzrEAn/?spm_id_from=333.1007.top_right_bar_window_custom_collection.content.click&vd_source=ee200f7e09eb8dbc8631c991d8917853
+* https://www.st.com/en/development-tools/stm32cubeprog.html
 #### 正点原子
 * http://47.111.11.73/docs/boards/fpga/index.html
 #### 野火
