@@ -159,6 +159,7 @@ nvcc -V
 4. 网线口在闪烁，但是上一步还是看不到任何包
    * watch -n 1 'ethtool -S enp2s0'
    * watch -n 1 'ethtool -S eth0 | grep -E "(rx_mtu_err|rx_jabber|rx_good_pkts)"'
+   * ip -s link show eth0
 5. 如何看自己的网卡相关信息
    * ifconfig
    * ip link show
