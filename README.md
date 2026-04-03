@@ -299,3 +299,5 @@ nvcc -V
 * http://47.111.11.73/docs/boards/fpga/index.html
 #### 野火
 * https://doc.embedfire.com/fpga/altera/ep4ce10_pro/zh/latest/code/foreword.html
+### pcb
+* https://www.bilibili.com/video/BV1bj4bzEEQQ?spm_id_from=333.788.videopod.sections&vd_source=ee200f7e09eb8dbc8631c991d8917853&p=6
