@@ -319,3 +319,4 @@ https://www.bilibili.com/video/BV1E5tnzrEAn/?spm_id_from=333.337.search-card.all
 * https://www.bilibili.com/video/BV1j5myBBEwy?spm_id_from=333.788.videopod.sections&vd_source=ee200f7e09eb8dbc8631c991d8917853
 ### 装配
 * https://github.com/EdavisAPU/Education-Optics
+* https://osnadocs.ub.uni-osnabrueck.de/bitstream/ds-202304188661/1/Osterheider_etal_Phys_Educ_2022.pdf
