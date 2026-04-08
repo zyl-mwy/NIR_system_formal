@@ -321,3 +321,4 @@ https://www.bilibili.com/video/BV1E5tnzrEAn/?spm_id_from=333.337.search-card.all
 * https://github.com/EdavisAPU/Education-Optics
 * https://osnadocs.ub.uni-osnabrueck.de/bitstream/ds-202304188661/1/Osterheider_etal_Phys_Educ_2022.pdf
 * https://github.com/zyl-mwy/NIR_system_formal/blob/main/README.md
+* https://2018.igem.org/Team%3AAachen/Hardware?utm_source=chatgpt.com
