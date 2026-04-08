@@ -323,3 +323,6 @@ https://www.bilibili.com/video/BV1E5tnzrEAn/?spm_id_from=333.337.search-card.all
 * https://github.com/zyl-mwy/NIR_system_formal/blob/main/README.md
 * https://2018.igem.org/Team%3AAachen/Hardware?utm_source=chatgpt.com
 * [[file:///D:/d/%E6%9C%80%E8%BF%91%E7%9A%84%E6%96%87%E6%A1%A3/valeria.brancolini@gmail.com,+Aydogan_final.pdf](https://e-publishing.cern.ch/index.php/CIJ/article/download/799/577/3552?utm_source=chatgpt.com)](https://e-publishing.cern.ch/index.php/CIJ/article/download/799/577/3552?utm_source=chatgpt.com)
+
+* https://github.com/SmokyMountainScientific/SpectrometerDesign?utm_source=chatgpt.com
+* 
