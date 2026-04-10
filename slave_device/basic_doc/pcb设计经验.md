@@ -367,10 +367,11 @@
 <img width="863" height="500" alt="2eab02cfac8a034dd9328f348b22e554" src="https://github.com/user-attachments/assets/3d93b142-cb04-4eb6-bba0-193f4bbc9afb" />
 ### PCB布局建议-走线
 <img width="961" height="557" alt="db0f61747566a2e9904d0b2a636d2ede" src="https://github.com/user-attachments/assets/73329d13-0719-48f3-810a-bf01c3074548" />
-### SARADC参考电压驱动电路
-* 需要设计低漂移、稳定以及满足精度要求的ADC参考电压驱动电路。
-* 参考电压源需有能提供动态的电压/电流的能力而不会引入额外的噪声及稳定性问题。
-* 参考电压源需要在ADC转换的每个时钟周期内保持稳定。
+### Buffer的作用
+* 较宽的带宽
+* 低输出阻抗
+* 能够输出/灌较大的电流
+* 良好的直流特性(温漂、偏置)有可能集成在reference内，或者使用外面运放驱动
 ## 其他
 * 测试点当电池引脚
 * 电池到电源之间加二极管 电池->电源
@@ -378,3 +379,11 @@
 * buck电路 跟输入电压大小无关；电压越小，对应附近的电容越小；只和电阻有关，可以设置成可调电阻
 * 螺丝柱
 * 100nf滤波
+### SARADC参考电压驱动电路
+* 需要设计低漂移、稳定以及满足精度要求的ADC参考电压驱动电路。
+* 参考电压源需有能提供动态的电压/电流的能力而不会引入额外的噪声及稳定性问题。
+* 参考电压源需要在ADC转换的每个时钟周期内保持稳定。
+### 系列参考电压/分流参考电压源
+<img width="940" height="416" alt="95468cfb99a61c6e0dcc0f1c78bd0da6" src="https://github.com/user-attachments/assets/39dcbc50-a78b-400f-8b12-c0b65d144746" />
+### 参考电压参数汇总
+<img width="1013" height="451" alt="eaae9556db2a88b30abca491fc77a6a6" src="https://github.com/user-attachments/assets/d5aa0bb0-385b-4681-8b9e-52cffd49d407" />
