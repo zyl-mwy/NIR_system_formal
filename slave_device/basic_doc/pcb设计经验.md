@@ -362,6 +362,9 @@
 * 至少一个完整地平面
 * 避免地层分割
 * 数字模拟信号公用一个地，但信号分离低引脚附近利用多个过孔到地平面
+### 电源芯片位置及去耦
+<img width="863" height="500" alt="2eab02cfac8a034dd9328f348b22e554" src="https://github.com/user-attachments/assets/3d93b142-cb04-4eb6-bba0-193f4bbc9afb" />
+
 ## 其他
 * 测试点当电池引脚
 * 电池到电源之间加二极管 电池->电源
