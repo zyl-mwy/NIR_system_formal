@@ -367,7 +367,10 @@
 <img width="863" height="500" alt="2eab02cfac8a034dd9328f348b22e554" src="https://github.com/user-attachments/assets/3d93b142-cb04-4eb6-bba0-193f4bbc9afb" />
 ### PCB布局建议-走线
 <img width="961" height="557" alt="db0f61747566a2e9904d0b2a636d2ede" src="https://github.com/user-attachments/assets/73329d13-0719-48f3-810a-bf01c3074548" />
-
+### SARADC参考电压驱动电路
+* 需要设计低漂移、稳定以及满足精度要求的ADC参考电压驱动电路。
+* 参考电压源需有能提供动态的电压/电流的能力而不会引入额外的噪声及稳定性问题。
+* 参考电压源需要在ADC转换的每个时钟周期内保持稳定。
 ## 其他
 * 测试点当电池引脚
 * 电池到电源之间加二极管 电池->电源
