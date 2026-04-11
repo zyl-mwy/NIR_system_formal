@@ -226,6 +226,7 @@
 ### PCB中如何去计算特性阻抗?
 * 嘉立创阻抗神器
 * https://tools.jlc.com/jlcTools/
+* https://tools.yunstech.cn/tools/electronic-engineering/jlc-impedance/index.html
 * 选择板层数——选择板厚度——输入阻抗值+选择阻抗类型（走线走哪些层就选哪几层）——计算结果，并适当调整
 ### 特性阻抗分了哪几种类型?
 * 差分阻抗:差分阻抗分为差模阻抗和共模阻抗，其中差模阻抗用于描述正负差分信号之间的阻抗，而共模阻抗则用于描述这两个信号与地之间的阻抗。常见的差分阻抗值有90欧姆、100欧姆等。差分信号传输是一种常用的信号传输方式，它利用一对幅度相等但极性相反的信号来传输信息，这种方式可以有效地抑制共模噪声和干扰，提高信号的抗干扰能力和传输质量。
@@ -415,8 +416,10 @@
 * 避免地层分割
 * 数字模拟信号公用一个地，但信号分离低引脚附近利用多个过孔到地平面
 ### 电源芯片位置及去耦
+
 <img width="863" height="500" alt="2eab02cfac8a034dd9328f348b22e554" src="https://github.com/user-attachments/assets/3d93b142-cb04-4eb6-bba0-193f4bbc9afb" />
 ### PCB布局建议-走线
+
 <img width="961" height="557" alt="db0f61747566a2e9904d0b2a636d2ede" src="https://github.com/user-attachments/assets/73329d13-0719-48f3-810a-bf01c3074548" />
 ### Buffer的作用
 * 较宽的带宽
@@ -447,6 +450,8 @@
 * 参考电压源需有能提供动态的电压/电流的能力而不会引入额外的噪声及稳定性问题。
 * 参考电压源需要在ADC转换的每个时钟周期内保持稳定。
 ### 系列参考电压/分流参考电压源
+
 <img width="940" height="416" alt="95468cfb99a61c6e0dcc0f1c78bd0da6" src="https://github.com/user-attachments/assets/39dcbc50-a78b-400f-8b12-c0b65d144746" />
 ### 参考电压参数汇总
+
 <img width="1013" height="451" alt="eaae9556db2a88b30abca491fc77a6a6" src="https://github.com/user-attachments/assets/d5aa0bb0-385b-4681-8b9e-52cffd49d407" />
