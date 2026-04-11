@@ -417,8 +417,10 @@
 * 数字模拟信号公用一个地，但信号分离低引脚附近利用多个过孔到地平面
 ### 电源芯片位置及去耦
 <img width="863" height="500" alt="2eab02cfac8a034dd9328f348b22e554" src="https://github.com/user-attachments/assets/3d93b142-cb04-4eb6-bba0-193f4bbc9afb" />
+
 ### PCB布局建议(走线)
 <img width="961" height="557" alt="db0f61747566a2e9904d0b2a636d2ede" src="https://github.com/user-attachments/assets/73329d13-0719-48f3-810a-bf01c3074548" />
+
 ### Buffer的作用
 * 较宽的带宽
 * 低输出阻抗
@@ -450,6 +452,7 @@
 ### 系列参考电压/分流参考电压源
 
 <img width="940" height="416" alt="95468cfb99a61c6e0dcc0f1c78bd0da6" src="https://github.com/user-attachments/assets/39dcbc50-a78b-400f-8b12-c0b65d144746" />
+
 ### 参考电压参数汇总
 
 <img width="1013" height="451" alt="eaae9556db2a88b30abca491fc77a6a6" src="https://github.com/user-attachments/assets/d5aa0bb0-385b-4681-8b9e-52cffd49d407" />
