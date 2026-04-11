@@ -416,10 +416,8 @@
 * 避免地层分割
 * 数字模拟信号公用一个地，但信号分离低引脚附近利用多个过孔到地平面
 ### 电源芯片位置及去耦
-
 <img width="863" height="500" alt="2eab02cfac8a034dd9328f348b22e554" src="https://github.com/user-attachments/assets/3d93b142-cb04-4eb6-bba0-193f4bbc9afb" />
-### PCB布局建议-走线
-
+### PCB布局建议(走线)
 <img width="961" height="557" alt="db0f61747566a2e9904d0b2a636d2ede" src="https://github.com/user-attachments/assets/73329d13-0719-48f3-810a-bf01c3074548" />
 ### Buffer的作用
 * 较宽的带宽
