@@ -194,6 +194,10 @@ nvcc -V
     * baobab
 12. 想要知道python某个包的具体安装位置
     * pip show xxx
+13. 重新插拔网线后通信不通
+    * sudo ip link set eth0 down
+    * sleep 2
+    * sudo ip link set eth0 up
 
 ## 使用这个系统的完整流程
 1. 给你的树莓派装上 ubuntu24.04 系统
