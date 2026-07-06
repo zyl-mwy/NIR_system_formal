@@ -198,6 +198,10 @@ nvcc -V
     * sudo ip link set eth0 down
     * sleep 2
     * sudo ip link set eth0 up
+14. 两个系统时间不同步
+    * sudo timedatectl set-local-rtc 1 --adjust-system-clock
+    * sudo timedatectl set-ntp true
+    * timedatectl
 
 ## 使用这个系统的完整流程
 1. 给你的树莓派装上 ubuntu24.04 系统
